@@ -9,7 +9,29 @@
   - https://github.com/faas-and-furious/youtube-dl/blob/master/entry.sh
 -->
 
-## Deploy
+## Functions
+
+### api-rdf
+
+> TODO: maybe glue https://github.com/hugapi/hug/tree/develop/docker plus https://github.com/EticaAI/openstreetmap-semantic-conventions-2023/blob/main/poc/osmapi2rdfproxy.py ?
+
+### curl
+
+> OpenFaaS test function. Not related to OpenStreetMap. Ignore for now.
+
+### sentimentanalysis
+
+> OpenFaaS test function. Not related to OpenStreetMap. Ignore for now.
+
+## Guides
+
+### Developers of functions
+
+> TODO: draft this.
+
+### Sysadmins
+
+> This is a draft. Ignore for now.
 
 ```
 export OPENFAAS_URL=https://osm-faas.etica.ai/

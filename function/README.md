@@ -6,7 +6,8 @@
 ```bash
 faas-cli template store pull python3-flask
 
-faas-cli new osm-api-proxy --lang python3-http
+# faas-cli new osm-api-proxy --lang python3-http
+faas-cli new api-proxy --lang python3-http
 
 # faas-cli build -f ./api-proxy.yml
 
@@ -15,8 +16,18 @@ cd  ~/Downloads/osm-faas/
 
 export OPENFAAS_PREFIX=EticaAI
 export OPENFAAS_URL=https://osm-faas.etica.ai/
-faas-cli build -f ./osm-api-proxy.yml
-faas-cli deploy -f ./osm-api-proxy.yml
+# faas-cli build -f ./osm-api-proxy.yml
+
+# If using https://snapcraft.io/docker, migth need change few things to not use sudo
+# and fix the permissions about not run docker outside ~/ (user home)
+# e.g error like "unable to evaluate symlinks in Dockerfile path:"
+#     cp -r $(pwd)/* ~/Downloads/docker-build-dir
+#     cd ~/Downloads/docker-build-dir/function
+#     newgrp docker
+faas-cli build -f ./api-proxy.yml
+faas-cli publish -f ./api-proxy.yml
+# faas-cli deploy -f ./osm-api-proxy.yml
+faas-cli deploy -f ./api-proxy.yml
 
 docker tag osm-api-proxy:latest ghcr.io/fititnt/osm-api-proxy:latest
 docker push ghcr.io/fititnt/osm-api-proxy:latest

@@ -10,6 +10,12 @@ functions:
   #   # image: EticaAI/osm-api-proxy:latest
   #   image: osm-api-proxy:latest
 
+  api-proxy:
+    lang: python3-http
+    handler: ./function/api-proxy
+    # image: api-proxy:latest
+    image: ghcr.io/${OWNER:-fititnt}/api-proxy:${TAG:-latest}
+
   curl:
     lang: dockerfile
     handler: ./function/curl
