@@ -1,0 +1,21 @@
+# version: 1.0
+provider:
+  name: openfaas
+  # gateway: http://127.0.0.1:8080
+functions:
+  # api-proxy:
+  #   lang: python3-flask
+  #   handler: ./function/api-proxy
+  #   # image: ghcr.io/EticaAI/osm-api-proxy:latest
+  #   # image: EticaAI/osm-api-proxy:latest
+  #   image: osm-api-proxy:latest
+
+  curl:
+    lang: dockerfile
+    handler: ./function/curl
+    image: ghcr.io/${OWNER:-fititnt}/curl:${TAG:-latest}
+
+  sentimentanalysis:
+    lang: dockerfile
+    handler: ./function/sentimentanalysis
+    image: ghcr.io/${OWNER:-fititnt}/sentimentanalysis:${TAG:-latest}
