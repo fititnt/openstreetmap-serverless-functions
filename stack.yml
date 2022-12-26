@@ -16,6 +16,11 @@ functions:
     # image: api-proxy:latest
     image: ghcr.io/${OWNER:-fititnt}/api-proxy:${TAG:-latest}
 
+  api-rdf:
+    lang: python3-http
+    handler: ./function/api-rdf
+    image: ghcr.io/${OWNER:-fititnt}/api-rdf:${TAG:-latest}
+
   curl:
     lang: dockerfile
     handler: ./function/curl
@@ -25,3 +30,8 @@ functions:
     lang: dockerfile
     handler: ./function/sentimentanalysis
     image: ghcr.io/${OWNER:-fititnt}/sentimentanalysis:${TAG:-latest}
+
+configuration:
+  templates:
+    - name: python3-http
+      source: https://github.com/openfaas/python-flask-template

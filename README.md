@@ -40,7 +40,33 @@ docker logs --follow api-proxy
 
 ### api-rdf
 
-> TODO: maybe glue https://github.com/hugapi/hug/tree/develop/docker plus https://github.com/EticaAI/openstreetmap-semantic-conventions-2023/blob/main/poc/osmapi2rdfproxy.py ?
+<!-- > TODO: maybe glue https://github.com/hugapi/hug/tree/develop/docker plus https://github.com/EticaAI/openstreetmap-semantic-conventions-2023/blob/main/poc/osmapi2rdfproxy.py ? -->
+
+- **Environment Variables**
+  - `OSM_API_DE_FACTO`: `https://www.openstreetmap.org/api/0.6`
+  - `CACHE_DRIVER`: `sqlite`
+  - `CACHE_TTL`: `3600`
+
+<!--
+
+## rebuild drill
+cd function/
+cp -r $(pwd)/* ~/Downloads/docker-build-dir
+cd ~/Downloads/docker-build-dir
+
+# docker build -t ghcr.io/fititnt/api-rdf ./api-rdf
+faas-cli build -f ./api-rdf-local.yml
+
+# faas-cli publish -f ./api-rdf-local.yml
+faas-cli deploy -f ./api-rdf-local.yml
+
+docker tag api-proxy:latest ghcr.io/fititnt/api-proxy:latest
+docker push ghcr.io/fititnt/api-proxy:latest
+
+docker run --name api-rdf --publish 8080:8080 -d ghcr.io/fititnt/api-rdf && docker logs --follow api-rdf
+docker container stop api-rdf && docker container rm api-rdf
+
+-->
 
 ### curl
 

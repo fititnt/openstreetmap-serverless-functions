@@ -43,6 +43,12 @@ jobs:
           docker login ghcr.io --username 
           ${{ steps.get_repo_owner.outputs.repo_owner }} 
           --password-stdin
+
+      # @see https://github.com/openfaas/python-flask-template
+      - name: Fech additional templates (python-flask-template)
+        run: >
+          faas-cli template pull https://github.com/openfaas/python-flask-template
+
       - name: Publish functions
         run: >
           OWNER="${{ steps.get_repo_owner.outputs.repo_owner }}" 

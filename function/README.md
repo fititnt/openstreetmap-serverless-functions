@@ -29,8 +29,8 @@ faas-cli publish -f ./api-proxy.yml
 # faas-cli deploy -f ./osm-api-proxy.yml
 faas-cli deploy -f ./api-proxy.yml
 
-docker tag osm-api-proxy:latest ghcr.io/fititnt/osm-api-proxy:latest
-docker push ghcr.io/fititnt/osm-api-proxy:latest
+docker tag api-proxy:latest ghcr.io/fititnt/api-proxy:latest
+docker push ghcr.io/fititnt/api-proxy:latest
 
 ```
 
