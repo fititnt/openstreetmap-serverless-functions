@@ -677,6 +677,18 @@ requests_cache.install_cache(
 
 def handle(event, context):
 
+    if not event.path.startswith(('/node/', '/way/', '/relation/')):
+        return {
+            "statusCode": 404,
+            "headers": {
+                'content-type': 'application/json'
+            },
+            "body": {
+                'error': 'Not found.',
+                'examples': ["/node/1", "/way/100", "/relation/10000"]
+            }
+        }
+
     content = requests.get(
         OSM_API_DE_FACTO + event.path)
 
@@ -699,10 +711,7 @@ def handle(event, context):
     return {
         "statusCode": content.status_code,
         "headers": {
-            # 'content-type': content.headers['Content-Type']
             'content-type': content_type
         },
-        # "body": content.text
         "body": body_text
-        # "body": content.text + "\n\n" + "<!--" + repr(content.__dict__)  + '-->'
     }

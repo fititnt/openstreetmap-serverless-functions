@@ -31,7 +31,7 @@ functions:
     handler: ./function/sentimentanalysis
     image: ghcr.io/${OWNER:-fititnt}/sentimentanalysis:${TAG:-latest}
 
-configuration:
-  templates:
-    - name: python3-http
-      source: https://github.com/openfaas/python-flask-template
+# configuration:
+#   templates:
+#     - name: python3-http
+#       source: https://github.com/openfaas/python-flask-template

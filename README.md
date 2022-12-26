@@ -60,8 +60,8 @@ faas-cli build -f ./api-rdf-local.yml
 # faas-cli publish -f ./api-rdf-local.yml
 faas-cli deploy -f ./api-rdf-local.yml
 
-docker tag api-proxy:latest ghcr.io/fititnt/api-proxy:latest
-docker push ghcr.io/fititnt/api-proxy:latest
+docker tag api-rdf:latest ghcr.io/fititnt/api-rdf:latest
+docker push ghcr.io/fititnt/api-rdf:latest
 
 docker run --name api-rdf --publish 8080:8080 -d ghcr.io/fititnt/api-rdf && docker logs --follow api-rdf
 docker container stop api-rdf && docker container rm api-rdf
@@ -75,6 +75,13 @@ docker container stop api-rdf && docker container rm api-rdf
 ### sentimentanalysis
 
 > OpenFaaS test function. Not related to OpenStreetMap. Ignore for now.
+
+### wiki-telegram-bot (draft)
+
+- **Environment Variables**
+  - `TELEGRAM_TOKEN`: `<your-token-here>`
+  - `WIKI_BASE_URL`: `https://wiki.openstreetmap.org/`
+  - `WIKI_PAGE`: `<the-page-here>`
 
 ## Guides
 
