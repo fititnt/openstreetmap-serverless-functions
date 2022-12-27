@@ -1,0 +1,3 @@
+mwparserfromhell
+requests
+requests_cache

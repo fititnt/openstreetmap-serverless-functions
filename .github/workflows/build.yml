@@ -17,6 +17,12 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      faascli_publish_filter:
+        description: 'Filter packages to rebuild'
+        required: true
+        type: string
+        default: '*'
 
 jobs:
   build:
@@ -104,10 +110,19 @@ jobs:
       #     --filter "api-*"
       #   continue-on-error: true
 
+      # - name: Publish functions
+      #   run: >
+      #     OWNER="${{ steps.get_repo_owner.outputs.repo_owner }}"
+      #     TAG="latest"
+      #     faas-cli publish
+      #     --platforms linux/amd64
+      #   continue-on-error: true
+
       - name: Publish functions
         run: >
-          OWNER="${{ steps.get_repo_owner.outputs.repo_owner }}" 
+          OWNER="${{ steps.get_repo_owner.outputs.repo_owner }}"
           TAG="latest"
           faas-cli publish
+          --filter "${{ inputs.faascli_publish_filter }}"
           --platforms linux/amd64
         continue-on-error: true

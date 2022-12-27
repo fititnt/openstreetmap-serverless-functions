@@ -76,6 +76,27 @@ docker container stop api-rdf && docker container rm api-rdf
 
 > OpenFaaS test function. Not related to OpenStreetMap. Ignore for now.
 
+### wiki-as-db (draft)
+- **Environment Variables**
+  - `CACHE_DRIVER`: `sqlite`
+  - `CACHE_TTL`: `3600`
+  - `WIKI_API`: `https://wiki.openstreetmap.org/w/api.php`
+  - `USER_AGENT`: `wiki-as-db/1.0`
+
+<!--
+## rebuild drill
+cd function/
+cp -r $(pwd)/* ~/Downloads/docker-build-dir
+cd ~/Downloads/docker-build-dir
+
+# docker build -t ghcr.io/fititnt/wiki-as-db ./wiki-as-db
+faas-cli build -f ./wiki-as-db-local.yml
+
+docker run --name wiki-as-db --publish 8080:8080 -d ghcr.io/fititnt/wiki-as-db && docker logs --follow wiki-as-db
+docker container stop wiki-as-db && docker container rm wiki-as-db
+
+-->
+
 ### wiki-telegram-bot (draft)
 
 - **Environment Variables**
