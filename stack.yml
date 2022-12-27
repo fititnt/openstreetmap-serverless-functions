@@ -33,5 +33,7 @@ functions:
 
 # configuration:
 #   templates:
-#     - name: python3-http
-#       source: https://github.com/openfaas/python-flask-template
+#     # - name: python3-http
+#     #   source: https://github.com/openfaas/python-flask-template
+#     templates:
+#         - name: python3-http
