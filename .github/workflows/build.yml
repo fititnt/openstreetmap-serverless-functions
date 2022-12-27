@@ -3,12 +3,17 @@
 name: build
 
 on:
+  schedule:
+    # Cronjob, once a month (if repo have activity)
+    - cron: "0 4 1 * *" # Runs at 04:00 UTC on the 1st of every month.
+
   push:
     branches:
-      - '*'
+      - "*"
+
   pull_request:
     branches:
-      - '*'
+      - "*"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -20,25 +25,33 @@ jobs:
       checks: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 1
+
       - name: Get faas-cli
         run: curl -sLSf https://cli.openfaas.com | sudo sh
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+
+      # - # Add support for more platforms with QEMU (optional)
+      #   # https://github.com/docker/setup-qemu-action
+      #   name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v2
+
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
+
       - name: Get TAG
         id: get_tag
         run: echo ::set-output name=TAG::latest-dev
+
       - name: Get Repo Owner
         id: get_repo_owner
         run: >
           echo ::set-output name=repo_owner::$(echo ${{ github.repository_owner }} |
           tr '[:upper:]' '[:lower:]')
+
       - name: Docker Login
-        run: > 
+        run: >
           echo ${{ secrets.GITHUB_TOKEN }} | 
           docker login ghcr.io --username 
           ${{ steps.get_repo_owner.outputs.repo_owner }} 
@@ -49,9 +62,9 @@ jobs:
       #   run: >
       #     faas-cli template pull https://github.com/openfaas/python-flask-template
 
-      - name: faas-cli template pull
-        run: >
-          faas-cli template pull
+      # - name: faas-cli template pull
+      #   run: >
+      #     faas-cli template pull
 
       - name: faas-cli template store pull python3-http
         run: >
@@ -60,13 +73,41 @@ jobs:
       - name: faas-cli template store pull dockerfile
         run: >
           faas-cli template store pull dockerfile
-        continue-on-error: true
+
+      # - name: Publish functions
+      #   run: >
+      #     OWNER="${{ steps.get_repo_owner.outputs.repo_owner }}"
+      #     TAG="latest"
+      #     faas-cli publish
+      #     --extra-tag ${{ github.sha }}
+      #     --platforms linux/arm/v7,linux/arm64,linux/amd64
+      #   continue-on-error: true
+
+      # # @TODO text this next
+      # - name: Publish functions
+      #   run: >
+      #     OWNER="${{ steps.get_repo_owner.outputs.repo_owner }}"
+      #     TAG="latest"
+      #     faas-cli publish
+      #     --extra-tag "${{ github.sha }}"
+      #     --platforms linux/amd64
+      #     --filter "api-*"
+      #   continue-on-error: true
+
+      # # @TODO text this next
+      # - name: Publish functions
+      #   run: >
+      #     OWNER="${{ steps.get_repo_owner.outputs.repo_owner }}"
+      #     TAG="latest"
+      #     faas-cli publish
+      #     --platforms linux/amd64
+      #     --filter "api-*"
+      #   continue-on-error: true
 
       - name: Publish functions
         run: >
           OWNER="${{ steps.get_repo_owner.outputs.repo_owner }}" 
           TAG="latest"
           faas-cli publish
-          --extra-tag ${{ github.sha }}
-          --platforms linux/arm/v7,linux/arm64,linux/amd64
+          --platforms linux/amd64
         continue-on-error: true

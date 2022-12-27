@@ -3,12 +3,6 @@ provider:
   name: openfaas
   # gateway: http://127.0.0.1:8080
 functions:
-  # api-proxy:
-  #   lang: python3-flask
-  #   handler: ./function/api-proxy
-  #   # image: ghcr.io/EticaAI/osm-api-proxy:latest
-  #   # image: EticaAI/osm-api-proxy:latest
-  #   image: osm-api-proxy:latest
 
   api-proxy:
     lang: python3-http
@@ -31,9 +25,14 @@ functions:
     handler: ./function/sentimentanalysis
     image: ghcr.io/${OWNER:-fititnt}/sentimentanalysis:${TAG:-latest}
 
+  wiki-telegram-bot:
+    lang: python3-http
+    handler: ./function/wiki-telegram-bot
+    # image: wiki-telegram-bot:latest
+    image: ghcr.io/${OWNER:-fititnt}/wiki-telegram-bot:${TAG:-latest}
+
 # configuration:
 #   templates:
-#     # - name: python3-http
-#     #   source: https://github.com/openfaas/python-flask-template
-#     templates:
-#         - name: python3-http
+#     - name: dockerfile
+#     - name: python3-http
+#       source: https://github.com/openfaas/python-flask-template
