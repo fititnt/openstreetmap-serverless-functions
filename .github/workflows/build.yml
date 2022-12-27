@@ -57,6 +57,11 @@ jobs:
         run: >
           faas-cli template store pull python3-http
 
+      - name: faas-cli template store pull dockerfile
+        run: >
+          faas-cli template store pull dockerfile
+        continue-on-error: true
+
       - name: Publish functions
         run: >
           OWNER="${{ steps.get_repo_owner.outputs.repo_owner }}" 
@@ -64,3 +69,4 @@ jobs:
           faas-cli publish
           --extra-tag ${{ github.sha }}
           --platforms linux/arm/v7,linux/arm64,linux/amd64
+        continue-on-error: true
