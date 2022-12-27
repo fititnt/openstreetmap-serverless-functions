@@ -698,15 +698,15 @@ def handle(event, context):
 
     if content.status_code == 200:
         if event.path.startswith('/node'):
-            content_type = 'text/turtle'
+            content_type = 'text/turtle; charset=utf-8'
             body_text = osmrdf_node_xml2ttl(body_text)
 
         elif event.path.startswith('/relation'):
-            content_type = 'text/turtle'
+            content_type = 'text/turtle; charset=utf-8'
             body_text = osmrdf_relation_xml2ttl(body_text)
 
         elif event.path.startswith('/way'):
-            content_type = 'text/turtle'
+            content_type = 'text/turtle; charset=utf-8'
             body_text = osmrdf_way_xml2ttl(body_text)
 
     return {

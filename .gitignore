@@ -1,3 +1,5 @@
 function/build
 function/template
 template
+function/wiki-telegram-bot/telegram.schema.json
+function/wiki-telegram-bot/echobot.py

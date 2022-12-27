@@ -104,6 +104,17 @@ docker container stop wiki-as-db && docker container rm wiki-as-db
   - `WIKI_BASE_URL`: `https://wiki.openstreetmap.org/`
   - `WIKI_PAGE`: `<the-page-here>`
 
+
+<!--
+- https://t.me/wikilinksbot
+
+>
+
+<!--
+
+
+-->
+
 ## Guides
 
 ### Developers of functions

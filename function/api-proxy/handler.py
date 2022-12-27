@@ -20,6 +20,20 @@ requests_cache.install_cache(
 
 def handle(event, context):
 
+    # Quick help for the lost souls who don't read documentation
+    # if not event.path.startswith(('/node/', '/way/', '/relation/')):
+    if len(event.path) < 6:
+        return {
+            "statusCode": 404,
+            "headers": {
+                'content-type': 'application/json'
+            },
+            "body": {
+                'error': 'Not found.',
+                'examples': ["/node/1", "/way/100", "/relation/10000"]
+            }
+        }
+
     content = requests.get(
         OSM_API_DE_FACTO + event.path)
 
