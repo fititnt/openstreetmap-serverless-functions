@@ -103,21 +103,36 @@ docker container stop wiki-as-base && docker container rm wiki-as-base
 
 
 - **Environment Variables**
-  - Cache
-    - `CACHE_DRIVER`: `sqlite`
-    - `CACHE_TTL`: `3600`
-  - Telegram
-    - Token (only one option necessary)
-      - `TELEGRAM_BOT_FILE_TOKEN`: `<secret-name>` <sup>[See on OpenFaaS secrets](https://docs.openfaas.com/cli/secrets/)</sup>
-      - `TELEGRAM_BOT_TOKEN`: `<your-token-here>` <sup>(can be used for testing. Overrides `TELEGRAM_BOT_FILE_TOKEN`)</sup>
-  - Wiki
-    - `WIKI_API`: `https://wiki.openstreetmap.org/w/api.php`
-    - `WIKI_WIKIASBASE_MAIN_PAGE`: `User:EmericusPetro/sandbox/Wiki-as-base`
+  - `CACHE_DRIVER`: `sqlite`
+  - `CACHE_TTL`: `3600`
+  - `FAAS_BACKEND`: `https://osm-faas.etica.ai/function/`
+  - `FAAS_ALLOWED`: `api-rdf,api-proxy,wiki-as-base,nodeinfo`
+  - Telegram Token (only one option necessary)
+    - `TELEGRAM_BOT_FILE_TOKEN`: `<secret-name>` <sup>[See on OpenFaaS secrets](https://docs.openfaas.com/cli/secrets/)</sup>
+    - `TELEGRAM_BOT_TOKEN`: `<your-token-here>`
+  - `WIKI_API`: `https://wiki.openstreetmap.org/w/api.php`
+  - `WIKI_WIKIASBASE_MAIN_PAGE`: `User:EmericusPetro/sandbox/Wiki-as-base`
 - **Requeriments**
   - Created bot on Telegram. See [From BotFather to 'Hello World'](https://core.telegram.org/bots/tutorial)
     - Save the `TELEGRAM_BOT_TOKEN`. This is equivalent to a password. If compromised, re-generate again with BotFather
   - After installing the wiki-telegram-bot, get the public FaaS endpoint and your function path, and tell Telegram API about it. Example:
     - `curl https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://osm-faas.etica.ai/function/wiki-telegram-bot`
+
+
+**Customize /slash commands**
+
+```bash
+curl -X POST -H "Content-Type: application/json" --data '{
+  "commands": [
+    {"command":"faas","description":"Function as a Service proxy"}
+  ]
+}' https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setMyCommands
+# {"ok":true,"result":true}
+```
+
+
+
+
 
 <!--
 ```bash
