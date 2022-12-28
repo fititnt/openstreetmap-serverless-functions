@@ -1,9 +1,13 @@
+# Default main Wiki-as-base at https://wiki.openstreetmap.org/wiki/User:EmericusPetro/sandbox/Wiki-as-base
+
+# https://osm-faas.etica.ai/function/wiki-as-db/User:EmericusPetro/sandbox/Wiki-as-base
+
 import os
 import mwparserfromhell
 import requests
 import requests_cache
 
-USER_AGENT = os.getenv('USER_AGENT', 'wiki-as-db/1.0')
+USER_AGENT = os.getenv('USER_AGENT', 'wiki-as-base/1.0')
 WIKI_API = os.getenv('WIKI_API', 'https://wiki.openstreetmap.org/w/api.php')
 CACHE_DRIVER = os.getenv('CACHE_DRIVER', 'sqlite')
 CACHE_TTL = os.getenv('CACHE_TTL', '3600')  # 1 hour

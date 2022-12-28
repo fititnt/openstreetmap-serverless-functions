@@ -25,11 +25,11 @@ functions:
     handler: ./function/sentimentanalysis
     image: ghcr.io/${OWNER:-fititnt}/sentimentanalysis:${TAG:-latest}
 
-  wiki-as-db:
+  wiki-as-base:
     lang: python3-http
-    handler: ./function/wiki-as-db
-    # image: wiki-as-db:latest
-    image: ghcr.io/${OWNER:-fititnt}/wiki-as-db:${TAG:-latest}
+    handler: ./function/wiki-as-base
+    # image: wiki-as-base:latest
+    image: ghcr.io/${OWNER:-fititnt}/wiki-as-base:${TAG:-latest}
 
   wiki-telegram-bot:
     lang: python3-http

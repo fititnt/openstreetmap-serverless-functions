@@ -76,12 +76,12 @@ docker container stop api-rdf && docker container rm api-rdf
 
 > OpenFaaS test function. Not related to OpenStreetMap. Ignore for now.
 
-### wiki-as-db (draft)
+### wiki-as-base (draft)
 - **Environment Variables**
   - `CACHE_DRIVER`: `sqlite`
   - `CACHE_TTL`: `3600`
   - `WIKI_API`: `https://wiki.openstreetmap.org/w/api.php`
-  - `USER_AGENT`: `wiki-as-db/1.0`
+  - `USER_AGENT`: `wiki-as-base/1.0`
 
 <!--
 ## rebuild drill
@@ -89,29 +89,46 @@ cd function/
 cp -r $(pwd)/* ~/Downloads/docker-build-dir
 cd ~/Downloads/docker-build-dir
 
-# docker build -t ghcr.io/fititnt/wiki-as-db ./wiki-as-db
-faas-cli build -f ./wiki-as-db-local.yml
+# docker build -t ghcr.io/fititnt/wiki-as-base ./wiki-as-base
+faas-cli build -f ./wiki-as-base-local.yml
 
-docker run --name wiki-as-db --publish 8080:8080 -d ghcr.io/fititnt/wiki-as-db && docker logs --follow wiki-as-db
-docker container stop wiki-as-db && docker container rm wiki-as-db
+docker run --name wiki-as-base --publish 8080:8080 -d ghcr.io/fititnt/wiki-as-base && docker logs --follow wiki-as-base
+docker container stop wiki-as-base && docker container rm wiki-as-base
 
 -->
 
 ### wiki-telegram-bot (draft)
 
-- **Environment Variables**
-  - `TELEGRAM_TOKEN`: `<your-token-here>` (not recommended)
-  - `WIKI_BASE_URL`: `https://wiki.openstreetmap.org/`
-  - `WIKI_PAGE`: `<the-page-here>`
+**As 2022-12-28, this is a proof of concept of a mere Echo bot. It will reply to private messages sent to it. It can, however, be used as example for specialized bots**
 
+
+- **Environment Variables**
+  - Cache
+    - `CACHE_DRIVER`: `sqlite`
+    - `CACHE_TTL`: `3600`
+  - Telegram
+    - Token (only one option necessary)
+      - `TELEGRAM_BOT_FILE_TOKEN`: `<secret-name>` <sup>[See on OpenFaaS secrets](https://docs.openfaas.com/cli/secrets/)</sup>
+      - `TELEGRAM_BOT_TOKEN`: `<your-token-here>` <sup>(can be used for testing. Overrides `TELEGRAM_BOT_FILE_TOKEN`)</sup>
+  - Wiki
+    - `WIKI_API`: `https://wiki.openstreetmap.org/w/api.php`
+    - `WIKI_WIKIASBASE_MAIN_PAGE`: `User:EmericusPetro/sandbox/Wiki-as-base`
+- **Requeriments**
+  - Created bot on Telegram. See [From BotFather to 'Hello World'](https://core.telegram.org/bots/tutorial)
+    - Save the `TELEGRAM_BOT_TOKEN`. This is equivalent to a password. If compromised, re-generate again with BotFather
+  - After installing the wiki-telegram-bot, get the public FaaS endpoint and your function path, and tell Telegram API about it. Example:
+    - `curl https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://osm-faas.etica.ai/function/wiki-telegram-bot`
+
+<!--
 ```bash
+
 # Configure telegram webhook first time. Change <TELEGRAM_BOT_TOKEN> and ?url=
 curl https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://osm-faas.etica.ai/function/wiki-telegram-bot
+#   > {"ok":true,"result":true,"description":"Webhook was set"}
 ```
 
 <!--
 - https://t.me/wikilinksbot
-
 >
 
 <!--
@@ -124,6 +141,10 @@ faas-cli build -f ./wiki-telegram-bot-local.yml && docker run --name wiki-telegr
 docker container stop wiki-telegram-bot && docker container rm wiki-telegram-bot
 
 -->
+<!--
+### Debugging wiki-telegram-bot
+- https://core.telegram.org/bots/webhooks
+-->
 
 ## Guides
 
@@ -133,16 +154,7 @@ docker container stop wiki-telegram-bot && docker container rm wiki-telegram-bot
 
 ### Sysadmins
 
-> This is a draft. Ignore for now.
-
-```
-export OPENFAAS_URL=https://osm-faas.etica.ai/
-export OPENFAAS_USER=admin
-
-# (...)
-
-# docker build -t fititnt/curl function/curl/
-```
+Full example of [Infrastructure as Code](https://en.wikipedia.org/wiki/Infrastructure_as_code) with [Ansible](https://en.wikipedia.org/wiki/Ansible_(software)) will be released soon... _but_ OpenFaaS core functionality runs mostly with this <https://github.com/openfaas/faasd/blob/master/cloud-config.txt>.
 
 ## Disclaimers
 <!--
