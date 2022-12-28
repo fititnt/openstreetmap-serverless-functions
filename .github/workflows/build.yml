@@ -7,13 +7,13 @@ on:
     # Cronjob, once a month (if repo have activity)
     - cron: "0 4 1 * *" # Runs at 04:00 UTC on the 1st of every month.
 
-  push:
-    branches:
-      - "*"
+  # push:
+  #   branches:
+  #     - "*"
 
-  pull_request:
-    branches:
-      - "*"
+  # pull_request:
+  #   branches:
+  #     - "*"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
