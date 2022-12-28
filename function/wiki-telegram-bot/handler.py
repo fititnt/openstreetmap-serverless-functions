@@ -35,13 +35,16 @@ FAAS_BACKEND = os.getenv('FAAS_BACKEND',
 FAAS_ALLOWED = os.getenv('FAAS_ALLOWED',
     'api-rdf,api-proxy,wiki-as-base,nodeinfo').split(',')
 
+
 def parse_telegram_in(body_text: str):
     return json.loads(body_text)
+
 
 def parse_telegram2faas_required(message_text_in):
     if message_text_in.startswith('/faas'):
         return True
     return False
+
 
 def parse_telegram2faas_request(message_text_in):
     options = []
@@ -64,11 +67,16 @@ def parse_telegram2faas_request(message_text_in):
 
     if req.status_code == 200:
         return req.text
+    if req.status_code == 404 and \
+        req.headers['content-type'].startswith('application/json') and \
+        'examples' in req.json():
+        return "404\n\n" + '\n'.join(req.json()['examples'])
     else:
         return f'{req.status_code} {faas_full_url}'
 
-    return '@TODO proxy this request ' + message_text_in + '<' + faas_func_arg + '>'
+    # return '@TODO proxy this request ' + message_text_in + '<' + faas_func_arg + '>'
     # return False
+
 
 def parse_telegram_out(tlg_in: str):
     chat_id = tlg_in['message']['chat']['id']
@@ -85,17 +93,17 @@ def parse_telegram_out(tlg_in: str):
     # https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={chat_id}&text={notification_text}.
     return [resp.status_code, resp.text, notification_text]
 
+
 def handle(event, context):
 
     # We would need to validate Telegram servers here (or protect the API)
     # at firewall/ip/etc strategy.
+    tlg_in_msg = False
+    tlg_out_msg = False
     if event.method == 'POST' and len(event.body) > 10:
         tlg_in_msg = parse_telegram_in(event.body)
         if tlg_in_msg and 'message' in tlg_in_msg:
             tlg_out_msg = parse_telegram_out(tlg_in_msg)
-    else:
-        tlg_in_msg = False
-        tlg_out_msg = False
 
     return {
         "statusCode": 200,
