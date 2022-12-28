@@ -1,6 +1,11 @@
+# @see https://core.telegram.org/bots/webhooks
+# @see https://www.freecodecamp.org/news/telegram-push-notifications-58477e71b2c2/
+
+import urllib
+import json
 import os
 import requests
-import requests_cache
+# import requests_cache
 
 
 def get_faas_secret(secret_key: str):
@@ -24,61 +29,37 @@ TELEGRAM_TOKEN = os.getenv(
     get_faas_secret(TELEGRAM_FILE_TOKEN)
 )
 
-# OSM_API_DE_FACTO = os.getenv(
-#     'OSM_API_DE_FACTO', 'https://www.openstreetmap.org/api/0.6')
-# CACHE_DRIVER = os.getenv('CACHE_DRIVER', 'sqlite')
-# CACHE_TTL = os.getenv('CACHE_TTL', '3600')  # 1 hour
+def parse_telegram_in(body_text: str):
+    return json.loads(body_text)
 
-# # Note: after setup the bot, configure the webkook url
-# # https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://osm-faas.etica.ai/function/wiki-telegram-bot
-
-# # @TODO implement the example from here https://core.telegram.org/bots/webhooks
-
-# # @see https://requests-cache.readthedocs.io/en/stable/
-# requests_cache.install_cache(
-#     'wikitelegram_cache',
-#     # /tmp OpenFaaS allow /tmp be writtable even in read-only mode
-#     # However, is not granted that changes will persist or shared
-#     db_path= '/tmp/wikitelegram_cache.sqlite',
-#     backend=CACHE_DRIVER,
-#     expire_after=CACHE_TTL,
-#     allowable_codes=[200, 400, 404, 500]
-# )
+def parse_telegram_out(tlg_in: str):
+    chat_id = tlg_in['message']['chat']['id']
+    notification_text = urllib.parse.quote_plus(tlg_in['message']['text'])
+    resp = requests.get(f'https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage?chat_id={chat_id}&text={notification_text}')
+    # https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={chat_id}&text={notification_text}.
+    return [resp.status_code, resp.text]
 
 def handle(event, context):
 
-    # content = requests.get(
-    #     OSM_API_DE_FACTO + event.path)
-
-    # TODO: forward some hint for user ip
-    # TODO: abort know invalid requests like *.png, *.ico, *.html, ...
+    # We would need to validate Telegram servers here (or protect the API)
+    # at firewall/ip/etc strategy.
+    if event.method == 'POST' and len(event.body) > 10:
+        tlg_in_msg = parse_telegram_in(event.body)
+        if tlg_in_msg and 'message' in tlg_in_msg:
+            tlg_out_msg = parse_telegram_out(tlg_in_msg)
+    else:
+        tlg_in_msg = False
+        tlg_out_msg = False
 
     return {
-        # "statusCode": content.status_code,
         "statusCode": 200,
-        # "headers": {
-        #     'content-type': content.headers['Content-Type']
-        # },
-        # "body": content.text
-        # "body": event.path
-        "body": "Hello from OpenFaaS! <<" + event.path + ">> <<" + repr(context.__dict__) + '>> <<' + repr(event.__dict__) + '>>' + '<<' + TELEGRAM_TOKEN + '>>' + '<<' + str(get_faas_secret(TELEGRAM_FILE_TOKEN)) + '>>'
+        "headers": {
+            'content-type': 'application/json; charset=utf-8'
+        },
+        "body": {
+            'input': tlg_in_msg,
+            'output': tlg_out_msg,
+            # 'debug': "Hello from OpenFaaS! <<" + event.path + ">> <<" + repr(context.__dict__) + '>> <<' + repr(event.__dict__) + '>>' + '<<' + str(TELEGRAM_TOKEN) + '>>' + '<<' + str(get_faas_secret(TELEGRAM_FILE_TOKEN)) + '>>'
+            'debug': "Hello from OpenFaaS! <<" + event.path + ">> <<" + repr(context.__dict__) + '>> <<' + repr(event.__dict__) + '>>'
+        }
     }
-
-def get_faas_secret(key):
-    # @see https://docs.openfaas.com/reference/secrets/
-    pass
-
-# def handle(event, context):
-#     return {
-#         "statusCode": 200,
-#         # "body": "Hello from OpenFaaS! <<" + json.dumps(context.__dict__) + '>> <<' + json.dumps(event.__dict__) + '>>'
-#         # "body": "Hello from OpenFaaS! <<" + repr(context.__dict__) + '>> <<' + repr(event.__dict__) + '>>'
-#         "body": repr(event.__dict__)
-#         # Maybe event['path'] return the path?
-#         # https://osm-faas.etica.ai/function/api-proxy/relation/12345.ttl?1234
-#         #  - event
-#         #    - (...)
-#         #    - 'method': 'GET'
-#         #    - 'query': ImmutableMultiDict([('1234', '')])
-#         #    - 'path': '/relation/12345.ttl'}
-#     }

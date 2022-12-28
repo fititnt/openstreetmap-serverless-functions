@@ -100,10 +100,14 @@ docker container stop wiki-as-db && docker container rm wiki-as-db
 ### wiki-telegram-bot (draft)
 
 - **Environment Variables**
-  - `TELEGRAM_TOKEN`: `<your-token-here>`
+  - `TELEGRAM_TOKEN`: `<your-token-here>` (not recommended)
   - `WIKI_BASE_URL`: `https://wiki.openstreetmap.org/`
   - `WIKI_PAGE`: `<the-page-here>`
 
+```bash
+# Configure telegram webhook first time. Change <TELEGRAM_BOT_TOKEN> and ?url=
+curl https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://osm-faas.etica.ai/function/wiki-telegram-bot
+```
 
 <!--
 - https://t.me/wikilinksbot
@@ -111,7 +115,13 @@ docker container stop wiki-as-db && docker container rm wiki-as-db
 >
 
 <!--
+## rebuild drill
+cd function/
+cp -r $(pwd)/* ~/Downloads/docker-build-dir
+cd ~/Downloads/docker-build-dir
 
+faas-cli build -f ./wiki-telegram-bot-local.yml && docker run --name wiki-telegram-bot --publish 8080:8080 -d ghcr.io/fititnt/wiki-telegram-bot && docker logs --follow wiki-telegram-bot
+docker container stop wiki-telegram-bot && docker container rm wiki-telegram-bot
 
 -->
 
