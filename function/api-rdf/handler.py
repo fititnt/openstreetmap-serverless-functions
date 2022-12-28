@@ -680,12 +680,14 @@ def handle(event, context):
     # Quick help for the lost souls who don't read documentation
     if not event.path.startswith(('/node/', '/way/', '/relation/')):
         return {
-            "statusCode": 404,
+            # "statusCode": 404,
+            "statusCode": 200,
             "headers": {
                 'content-type': 'application/json'
             },
             "body": {
-                'error': 'Not found.',
+                # 'error': 'Not found.',
+                'message': 'Not found.',
                 'examples': ["/node/1", "/way/100", "/relation/10000"]
             }
         }

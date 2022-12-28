@@ -46,15 +46,28 @@ def parse_telegram2faas_required(message_text_in):
 def parse_telegram2faas_request(message_text_in):
     options = []
     faas_func = None
+    faas_func_arg = ''
     for item in FAAS_ALLOWED:
-        options.append(f'/faas__{item}')
-        if message_text_in.startswith(f'/faas__{item}'):
+        item_norm = item.lower().replace('-', '')
+        option = f'/faas__{item_norm}'
+        options.append(option)
+        if message_text_in.startswith(option):
             faas_func = item
+            faas_func_arg = message_text_in[len(option):].strip()
 
     if faas_func is None:
         return '\n'.join(options)
 
-    return '@TODO proxy this request ' + message_text_in
+    faas_full_url = FAAS_BACKEND + faas_func + faas_func_arg
+
+    req = requests.get(faas_full_url)
+
+    if req.status_code == 200:
+        return req.text
+    else:
+        return f'{req.status_code} {faas_full_url}'
+
+    return '@TODO proxy this request ' + message_text_in + '<' + faas_func_arg + '>'
     # return False
 
 def parse_telegram_out(tlg_in: str):
@@ -70,7 +83,7 @@ def parse_telegram_out(tlg_in: str):
 
     resp = requests.get(f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={notification_text}')
     # https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={chat_id}&text={notification_text}.
-    return [resp.status_code, resp.text]
+    return [resp.status_code, resp.text, notification_text]
 
 def handle(event, context):
 

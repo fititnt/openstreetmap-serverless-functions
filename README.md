@@ -116,7 +116,7 @@ docker container stop wiki-as-base && docker container rm wiki-as-base
   - Created bot on Telegram. See [From BotFather to 'Hello World'](https://core.telegram.org/bots/tutorial)
     - Save the `TELEGRAM_BOT_TOKEN`. This is equivalent to a password. If compromised, re-generate again with BotFather
   - After installing the wiki-telegram-bot, get the public FaaS endpoint and your function path, and tell Telegram API about it. Example:
-    - `curl https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://osm-faas.etica.ai/function/wiki-telegram-bot`
+    - `curl https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://example.org/function/wiki-telegram-bot`
 
 
 **Customize /slash commands**
@@ -166,6 +166,15 @@ docker container stop wiki-telegram-bot && docker container rm wiki-telegram-bot
 ### Developers of functions
 
 > TODO: draft this.
+
+Check out <https://docs.openfaas.com/>.
+
+Examples of template-stores available:
+
+- _This repository_
+- https://github.com/openfaas/store-functions
+- https://github.com/openfaas/python-flask-template
+- Any custom Dockerfile <sup>But OpenFaaS require some conventions</sup>
 
 ### Sysadmins
 
