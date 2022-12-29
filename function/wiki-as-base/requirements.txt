@@ -1,3 +1,4 @@
 mwparserfromhell
 requests
 requests_cache
+wiki_as_base

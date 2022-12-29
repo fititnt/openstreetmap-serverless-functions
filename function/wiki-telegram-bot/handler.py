@@ -36,6 +36,11 @@ FAAS_ALLOWED = os.getenv('FAAS_ALLOWED',
     'api-rdf,api-proxy,wiki-as-base,nodeinfo').split(',')
 
 
+def response_as_markdown(content: str, mediatype: str = None):
+    # TODO deal with mediatype
+    return '```\n' + content + '\n```'
+
+
 def parse_telegram_in(body_text: str):
     return json.loads(body_text)
 
@@ -66,7 +71,8 @@ def parse_telegram2faas_request(message_text_in):
     req = requests.get(faas_full_url)
 
     if req.status_code == 200:
-        return req.text
+        return response_as_markdown(req.text, req.headers['content-type'])
+
     if req.status_code == 404 and \
         req.headers['content-type'].startswith('application/json') and \
         'examples' in req.json():
@@ -89,7 +95,7 @@ def parse_telegram_out(tlg_in: str):
 
     # raise Exception(notification_text)
 
-    resp = requests.get(f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={notification_text}')
+    resp = requests.get(f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={chat_id}&no_webpage=true&text={notification_text}')
     # https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={chat_id}&text={notification_text}.
     return [resp.status_code, resp.text, notification_text]
 

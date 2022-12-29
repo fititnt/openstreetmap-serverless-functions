@@ -6,44 +6,46 @@ import os
 import mwparserfromhell
 import requests
 import requests_cache
+import wiki_as_base
 
-USER_AGENT = os.getenv('USER_AGENT', 'wiki-as-base/1.0')
-WIKI_API = os.getenv('WIKI_API', 'https://wiki.openstreetmap.org/w/api.php')
-CACHE_DRIVER = os.getenv('CACHE_DRIVER', 'sqlite')
-CACHE_TTL = os.getenv('CACHE_TTL', '3600')  # 1 hour
+USER_AGENT = os.getenv("USER_AGENT", "wiki-as-base/1.0")
+WIKI_API = os.getenv("WIKI_API", "https://wiki.openstreetmap.org/w/api.php")
+CACHE_DRIVER = os.getenv("CACHE_DRIVER", "sqlite")
+CACHE_TTL = os.getenv("CACHE_TTL", "3600")  # 1 hour
 
 # @see https://requests-cache.readthedocs.io/en/stable/
 requests_cache.install_cache(
-    'osmapi_cache',
+    "osmapi_cache",
     # /tmp OpenFaaS allow /tmp be writtable even in read-only mode
     # However, is not granted that changes will persist or shared
-    db_path= '/tmp/osmwiki_cache.sqlite',
+    db_path="/tmp/osmwiki_cache.sqlite",
     backend=CACHE_DRIVER,
     expire_after=CACHE_TTL,
-    allowable_codes=[200, 400, 404, 500]
+    allowable_codes=[200, 400, 404, 500],
 )
 
+
 def handle(event, context):
-    search_path = event.path.lstrip('/')
+    search_path = event.path.lstrip("/")
     # if search_path in ['favicon.ico']:
     #     return False
 
     # Quick help for the lost souls who don't read documentation
-    if len(search_path) < 4 or search_path in ['favicon.ico']:
+    if len(search_path) < 4 or search_path in ["favicon.ico"]:
         return {
             "statusCode": 404,
-            "headers": {
-                'content-type': 'application/json'
-            },
+            "headers": {"content-type": "application/json"},
             "body": {
-                'error': 'Not found',
-                'examples': ["/Key:maxspeed", "/Tag:highway=residential"]
-            }
+                "error": "Not found",
+                "examples": ["/Key:maxspeed", "/Tag:highway=residential"],
+            },
         }
 
     # content = requests.get(
     #     WIKI_API + event.path)
     req, parsed = parse_wiki_request(search_path)
+
+    parsed_raw = wiki_as_base.wiki_as_base_raw(parsed)
 
     # TODO: forward some hint for user ip
     # TODO: abort know invalid requests like *.png, *.ico, *.html, ...
@@ -55,8 +57,10 @@ def handle(event, context):
         # },
         # "body": content.text
         # "body": content.text + "\n\n" + "<!--" + repr(content.__dict__)  + '-->'
-        "body": parsed
+        # "body": parsed
+        "body": parsed_raw,
     }
+
 
 # @see https://github.com/earwig/mwparserfromhell/
 def parse_wiki_request(title):

@@ -63,7 +63,7 @@ faas-cli deploy -f ./api-rdf-local.yml
 docker tag api-rdf:latest ghcr.io/fititnt/api-rdf:latest
 docker push ghcr.io/fititnt/api-rdf:latest
 
-docker run --name api-rdf --publish 8080:8080 -d ghcr.io/fititnt/api-rdf && docker logs --follow api-rdf
+faas-cli build -f ./api-rdf-local.yml && docker run --name api-rdf --publish 8080:8080 -d ghcr.io/fititnt/api-rdf && docker logs --follow api-rdf
 docker container stop api-rdf && docker container rm api-rdf
 
 -->
@@ -90,10 +90,10 @@ cp -r $(pwd)/* ~/Downloads/docker-build-dir
 cd ~/Downloads/docker-build-dir
 
 # docker build -t ghcr.io/fititnt/wiki-as-base ./wiki-as-base
-faas-cli build -f ./wiki-as-base-local.yml
+# faas-cli build -f ./wiki-as-base-local.yml
 
-docker run --name wiki-as-base --publish 8080:8080 -d ghcr.io/fititnt/wiki-as-base && docker logs --follow wiki-as-base
-docker container stop wiki-as-base && docker container rm wiki-as-base
+faas-cli build -f ./wiki-as-base-local.yml && docker run --name wiki-as-base --publish 8080:8080 -d ghcr.io/fititnt/wiki-as-base && docker logs --follow wiki-as-base
+docker container stop wiki-as-base && docker container rm wiki-as-base && docker rmi ghcr.io/fititnt/wiki-as-base:latest
 
 -->
 
