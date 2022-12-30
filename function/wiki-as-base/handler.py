@@ -34,7 +34,7 @@ def handle(event, context):
     if len(search_path) < 4 or search_path in ["favicon.ico"]:
         return {
             "statusCode": 404,
-            "headers": {"content-type": "application/json"},
+            "headers": {"content-type": "application/json; charset=utf-8"},
             "body": {
                 "error": "Not found",
                 "examples": ["/Key:maxspeed", "/Tag:highway=residential"],
@@ -47,18 +47,26 @@ def handle(event, context):
 
     parsed_raw = wiki_as_base.wiki_as_base_raw(parsed)
 
+    result = wiki_as_base.wiki_as_base_request(search_path)
+    data = {'error': 'no data from request'}
+    if result:
+        data = wiki_as_base.wiki_as_base_all(result)
+        # if data:
+        #     print(json.dumps(data, ensure_ascii=False, indent=2))
+
     # TODO: forward some hint for user ip
     # TODO: abort know invalid requests like *.png, *.ico, *.html, ...
 
     return {
         "statusCode": req.status_code,
-        # "headers": {
-        #     'content-type': req.headers['Content-Type']
-        # },
+        "headers": {
+            'content-type': 'application/json; charset=utf-8'
+        },
         # "body": content.text
         # "body": content.text + "\n\n" + "<!--" + repr(content.__dict__)  + '-->'
         # "body": parsed
-        "body": parsed_raw,
+        # "body": parsed_raw,
+        "body": data,
     }
 
 

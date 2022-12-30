@@ -3,6 +3,8 @@
 
 [![OpenFaas](img/openfaas-whale.png)](https://www.openfaas.com/)
 
+> Tip: for sysadmins or people interested in offering hosting, [check the openstreetmap-faas-infra](https://github.com/fititnt/openstreetmap-faas-infra).
+
 <!--
 - Examples
   - https://github.com/openfaas/store-functions/blob/master/stack.yml
@@ -85,15 +87,20 @@ docker container stop api-rdf && docker container rm api-rdf
 
 <!--
 ## rebuild drill
-cd function/
-cp -r $(pwd)/* ~/Downloads/docker-build-dir
-cd ~/Downloads/docker-build-dir
+cp -r $(pwd)/* ~/Downloads/docker-build
+cd ~/Downloads/docker-build
 
 # docker build -t ghcr.io/fititnt/wiki-as-base ./wiki-as-base
 # faas-cli build -f ./wiki-as-base-local.yml
 
-faas-cli build -f ./wiki-as-base-local.yml && docker run --name wiki-as-base --publish 8080:8080 -d ghcr.io/fititnt/wiki-as-base && docker logs --follow wiki-as-base
+faas-cli build -f ./stack.yml --filter wiki-as-base && docker run --name wiki-as-base --publish 8080:8080 -d ghcr.io/fititnt/wiki-as-base && docker logs --follow wiki-as-base
 docker container stop wiki-as-base && docker container rm wiki-as-base && docker rmi ghcr.io/fititnt/wiki-as-base:latest
+
+# tests
+curl http://localhost:8080/Key:maxspeed
+curl http://localhost:8080/User:EmericusPetro/sandbox/Wiki-as-base
+
+@bot /faas__wikiasbase /User:EmericusPetro/sandbox/Wiki-as-base
 
 -->
 
@@ -129,10 +136,6 @@ curl -X POST -H "Content-Type: application/json" --data '{
 }' https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setMyCommands
 # {"ok":true,"result":true}
 ```
-
-
-
-
 
 <!--
 ```bash
