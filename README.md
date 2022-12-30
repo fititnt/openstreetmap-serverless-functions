@@ -151,11 +151,10 @@ curl https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://osm
 
 <!--
 ## rebuild drill
-cd function/
-cp -r $(pwd)/* ~/Downloads/docker-build-dir
+cp -r $(pwd)/* ~/Downloads/docker-build
 cd ~/Downloads/docker-build-dir
 
-faas-cli build -f ./wiki-telegram-bot-local.yml && docker run --name wiki-telegram-bot --publish 8080:8080 -d ghcr.io/fititnt/wiki-telegram-bot && docker logs --follow wiki-telegram-bot
+faas-cli build -f ./stack.yml --filter wiki-telegram-bot && docker run --name wiki-telegram-bot --publish 8080:8080 -d ghcr.io/fititnt/wiki-telegram-bot && docker logs --follow wiki-telegram-bot
 docker container stop wiki-telegram-bot && docker container rm wiki-telegram-bot
 
 -->

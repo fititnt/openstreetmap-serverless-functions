@@ -29,11 +29,16 @@ TELEGRAM_BOT_TOKEN = os.getenv(
     get_faas_secret(TELEGRAM_BOT_FILE_TOKEN)
 )
 
+TELEGRAM_BOT_NAME = os.getenv(
+    'TELEGRAM_BOT_NAME',
+    'XptoTest123Bot'
+)
+
 FAAS_BACKEND = os.getenv('FAAS_BACKEND',
     'https://osm-faas.etica.ai/function/')
 
 FAAS_ALLOWED = os.getenv('FAAS_ALLOWED',
-    'api-rdf,api-proxy,wiki-as-base,nodeinfo').split(',')
+    'api-rdf,api-proxy,wiki-as-base,nodeinfo,cows').split(',')
 
 
 def response_as_markdown(content: str, mediatype: str = None):
@@ -55,13 +60,26 @@ def parse_telegram2faas_request(message_text_in):
     options = []
     faas_func = None
     faas_func_arg = ''
+
+    # This part needs more testing
+    if len(TELEGRAM_BOT_NAME) > 0 and \
+        message_text_in.find('@' + TELEGRAM_BOT_NAME) > -1:
+        message_text_in = message_text_in.replace('@' + TELEGRAM_BOT_NAME, '')
+
     for item in FAAS_ALLOWED:
         item_norm = item.lower().replace('-', '')
         option = f'/faas__{item_norm}'
         options.append(option)
+
+        if message_text_in.startswith(f'/faas /{item_norm}'):
+            faas_func = item
+            faas_func_arg = message_text_in[len(f'/faas /{item_norm}'):].strip()
+            break
+
         if message_text_in.startswith(option):
             faas_func = item
             faas_func_arg = message_text_in[len(option):].strip()
+            break
 
     if faas_func is None:
         return '\n'.join(options)
@@ -104,6 +122,8 @@ def handle(event, context):
 
     # We would need to validate Telegram servers here (or protect the API)
     # at firewall/ip/etc strategy.
+
+    # @TODO implement bot also reply to edited messages
     tlg_in_msg = False
     tlg_out_msg = False
     if event.method == 'POST' and len(event.body) > 10:
