@@ -78,6 +78,7 @@ docker container stop api-rdf && docker container rm api-rdf
 - **Environment Variables**
   - `OVERPASS_API_DE_FACTO`: `https://overpass-api.de/api/interpreter`
 
+> See also [Overpass Query Language](https://wiki.openstreetmap.org/wiki/Overpass_API/Overpass_QL)
 
 ```bash
 
@@ -136,7 +137,7 @@ curl http://localhost:8080/User:EmericusPetro/sandbox/Wiki-as-base
   - `CACHE_DRIVER`: `sqlite`
   - `CACHE_TTL`: `3600`
   - `FAAS_BACKEND`: `https://osm-faas.etica.ai/function/`
-  - `FAAS_ALLOWED`: `api-rdf,api-proxy,wiki-as-base,nodeinfo`
+  - `FAAS_ALLOWED`: `api-rdf,api-proxy,overpass-proxy,wiki-as-base,nodeinfo,cows`
   - Telegram Token (only one option necessary)
     - `TELEGRAM_BOT_FILE_TOKEN`: `<secret-name>` <sup>[See on OpenFaaS secrets](https://docs.openfaas.com/cli/secrets/)</sup>
     - `TELEGRAM_BOT_TOKEN`: `<your-token-here>`
@@ -177,8 +178,16 @@ curl https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://osm
 cp -r $(pwd)/* ~/Downloads/docker-build
 cd ~/Downloads/docker-build-dir
 
-faas-cli build -f ./stack.yml --filter wiki-telegram-bot && docker run --name wiki-telegram-bot --publish 8080:8080 -d ghcr.io/fititnt/wiki-telegram-bot && docker logs --follow wiki-telegram-bot
+faas-cli build -f ./stack.yml --filter wiki-telegram-bot && docker run --name wiki-telegram-bot --publish 8080:8080 --env TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" -d ghcr.io/fititnt/wiki-telegram-bot && docker logs --follow wiki-telegram-bot
 docker container stop wiki-telegram-bot && docker container rm wiki-telegram-bot
+
+## command line
+echo "data=node[name='Gielgen'];out;" > query.osm
+curl "http://localhost:8080/" --data @query.osm --output output.osm
+curl "http://localhost:8080/overpass-proxy" --data @query.osm --output output.osm
+
+## chatbot
+/overpass-proxy data=node[name='Gielgen'];out;
 
 -->
 <!--
