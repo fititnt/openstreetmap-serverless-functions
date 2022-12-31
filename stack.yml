@@ -1,12 +1,10 @@
-# version: 1.0
+version: 1.0
 provider:
   name: openfaas
-  # gateway: http://127.0.0.1:8080
 functions:
   api-proxy:
     lang: python3-http
     handler: ./function/api-proxy
-    # image: api-proxy:latest
     image: ghcr.io/${OWNER:-fititnt}/api-proxy:${TAG:-latest}
 
   api-rdf:

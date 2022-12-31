@@ -78,6 +78,14 @@ docker container stop api-rdf && docker container rm api-rdf
 - **Environment Variables**
   - `OVERPASS_API_DE_FACTO`: `https://overpass-api.de/api/interpreter`
 
+
+```bash
+
+echo "data=node[name='Gielgen'];out;" > query.osm
+curl "https://faas.example.org/overpass-proxy" --data @query.osm --output output.osm
+
+```
+
 <!--
 ## rebuild drill
 cp -r $(pwd)/* ~/Downloads/docker-build

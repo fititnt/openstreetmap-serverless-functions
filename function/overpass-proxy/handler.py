@@ -10,6 +10,37 @@ OVERPASS_API_DE_FACTO = os.getenv(
 CACHE_DRIVER = os.getenv('CACHE_DRIVER', 'sqlite')
 CACHE_TTL = os.getenv('CACHE_TTL', '3600')  # 1 hour
 
+
+# Not fully tested yet
+HELP_MESSAGE = {
+  "$schema": "https://osm-faas.etica.ai/schema.json",
+  "@context": "https://osm-faas.etica.ai/context.jsonld",
+  "@id": "https://osm-faas.etica.ai",
+  "data": [
+    {
+        "@type": "_:example",
+        "POST": "data=node[name='Gielgen'];out;"
+    },
+    # {
+    #     "@type": "_:example",
+    #     "GET": "?data=node%5Bname%3D%27Gielgen%27%5D%3Bout%3B"
+    # },
+    # {
+    #     "@type": "_:example",
+    #     "GET": "?data=node[name='Gielgen'];out;"
+    # },
+  ]
+}
+
+# echo "data=node[name='Gielgen'];out;" > query.osm
+# wget -O target.osm --post-file=query.osm "https://overpass-api.de/api/interpreter"
+# curl -o target_local.osm -d @query.osm "http://localhost:8080/"
+
+# @TODO implement via get method
+# curl -o target_local_get.osm --globoff 'http://localhost:8080/?data=node[name="Gielgen"];out;'
+# curl -o target_local_get.osm --globoff 'http://localhost:8080/?node[name="Gielgen"];out;'
+# curl -o target_local_get.osm --globoff 'http://localhost:8080/data=node[name="Gielgen"];out;'
+
 # @see https://requests-cache.readthedocs.io/en/stable/
 requests_cache.install_cache(
     'osmapi_cache',
@@ -25,35 +56,50 @@ def handle(event, context):
 
     # Quick help for the lost souls who don't read documentation
     # if not event.path.startswith(('/node/', '/way/', '/relation/')):
-    if len(event.path) < 6:
+    if (len(event.path) < 6 and event.method != 'POST') or \
+        (len(event.body) < 10 and event.method == 'POST'):
+
+        # pass
+
         return {
-            "statusCode": 404,
+            "statusCode": 400,  # 400 Bad Request
             "headers": {
                 'content-type': 'application/json'
             },
-            "body": {
-                'error': 'Not found.',
-                'examples': [
-                    "data=node[name=\"Gielgen\"];out;",
-                    "@see http://overpass-api.de/command_line.html"
-                ]
-            }
+            # "body": {
+            #     'error': 'Not found.',
+            #     'examples': [
+            #         "data=node[name=\"Gielgen\"];out;",
+            #         "@see http://overpass-api.de/command_line.html"
+            #     ]
+            # }
+            "body": HELP_MESSAGE
         }
 
-    # @TODO also make POST request
-    urlencoded = urllib.quote_plus(event.path)
+    urlencoded = urllib.parse.quote_plus(event.path)
 
-    content = requests.get(
-        OVERPASS_API_DE_FACTO + '?data=' + urlencoded)
+    if event.method == 'POST':
+        content = requests.post(OVERPASS_API_DE_FACTO, data=event.body)
+    else:
+        if urlencoded.startswith('data'):
+            content = requests.get(
+                OVERPASS_API_DE_FACTO + '?' + urlencoded)
+        elif urlencoded.startswith('?data='):
+            content = requests.get(
+                OVERPASS_API_DE_FACTO + '' + urlencoded)
+        else:
+            content = requests.get(
+                OVERPASS_API_DE_FACTO + '' + urlencoded)
 
     return {
         "statusCode": content.status_code,
         "headers": {
             'content-type': content.headers['Content-Type']
         },
-        # "body": content.text
-        # "body": content.text + "\n\n" + "<!--" + repr(content.__dict__)  + '-->'
         "body": content.text
+        # "body": content.text + "\n\n" + "<!--" + repr(content.__dict__)  + '-->'
+        # "body": content.text
+        # "body": "<<" + repr(context.__dict__) + '>> <<' + repr(event.__dict__) + '>>'
     }
 
 # def handle(event, context):
