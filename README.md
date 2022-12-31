@@ -74,6 +74,21 @@ docker container stop api-rdf && docker container rm api-rdf
 
 > OpenFaaS test function. Not related to OpenStreetMap. Ignore for now.
 
+### overpass-proxy (draft)
+- **Environment Variables**
+  - `OVERPASS_API_DE_FACTO`: `https://overpass-api.de/api/interpreter`
+
+<!--
+## rebuild drill
+cp -r $(pwd)/* ~/Downloads/docker-build
+cd ~/Downloads/docker-build
+
+faas-cli build -f ./stack.yml --filter overpass-proxy && docker run --name overpass-proxy --publish 8080:8080 -d ghcr.io/fititnt/overpass-proxy && docker logs --follow overpass-proxy
+docker container stop overpass-proxy && docker container rm overpass-proxy && docker rmi ghcr.io/fititnt/overpass-proxy:latest
+
+
+-->
+
 ### sentimentanalysis
 
 > OpenFaaS test function. Not related to OpenStreetMap. Ignore for now.

@@ -3,7 +3,6 @@ provider:
   name: openfaas
   # gateway: http://127.0.0.1:8080
 functions:
-
   api-proxy:
     lang: python3-http
     handler: ./function/api-proxy
@@ -19,6 +18,11 @@ functions:
     lang: dockerfile
     handler: ./function/curl
     image: ghcr.io/${OWNER:-fititnt}/curl:${TAG:-latest}
+
+  overpass-proxy:
+    lang: python3-http
+    handler: ./function/overpass-proxy
+    image: ghcr.io/${OWNER:-fititnt}/overpass-proxy:${TAG:-latest}
 
   sentimentanalysis:
     lang: dockerfile
@@ -36,7 +40,6 @@ functions:
     handler: ./function/wiki-telegram-bot
     # image: wiki-telegram-bot:latest
     image: ghcr.io/${OWNER:-fititnt}/wiki-telegram-bot:${TAG:-latest}
-
 # configuration:
 #   templates:
 #     - name: dockerfile
