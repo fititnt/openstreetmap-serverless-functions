@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Unlicense OR 0BSD
+
 # Default main Wiki-as-base at https://wiki.openstreetmap.org/wiki/User:EmericusPetro/sandbox/Wiki-as-base
 
 # https://osm-faas.etica.ai/function/wiki-as-db/User:EmericusPetro/sandbox/Wiki-as-base
@@ -48,7 +50,7 @@ def handle(event, context):
     parsed_raw = wiki_as_base.wiki_as_base_raw(parsed)
 
     result = wiki_as_base.wiki_as_base_request(search_path)
-    data = {'error': 'no data from request'}
+    data = {"error": "no data from request"}
     if result:
         data = wiki_as_base.wiki_as_base_all(result)
         # if data:
@@ -59,9 +61,7 @@ def handle(event, context):
 
     return {
         "statusCode": req.status_code,
-        "headers": {
-            'content-type': 'application/json; charset=utf-8'
-        },
+        "headers": {"content-type": "application/json; charset=utf-8"},
         # "body": content.text
         # "body": content.text + "\n\n" + "<!--" + repr(content.__dict__)  + '-->'
         # "body": parsed

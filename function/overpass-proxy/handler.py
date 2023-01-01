@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Unlicense OR 0BSD
+
 import os
 import urllib
 import requests

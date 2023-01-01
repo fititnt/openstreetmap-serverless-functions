@@ -1,9 +1,0 @@
-provider:
-  name: openfaas
-functions:
-  wiki-as-base:
-    lang: python3-http
-    handler: ./wiki-as-base
-    # image: wiki-as-base:latest
-    image: ghcr.io/${OWNER:-fititnt}/wiki-as-base:${TAG:-latest}
-

@@ -1,22 +1,26 @@
+# SPDX-License-Identifier: Unlicense OR 0BSD
+
 import os
 import requests
 import requests_cache
 
 OSM_API_DE_FACTO = os.getenv(
-    'OSM_API_DE_FACTO', 'https://www.openstreetmap.org/api/0.6')
-CACHE_DRIVER = os.getenv('CACHE_DRIVER', 'sqlite')
-CACHE_TTL = os.getenv('CACHE_TTL', '3600')  # 1 hour
+    "OSM_API_DE_FACTO", "https://www.openstreetmap.org/api/0.6"
+)
+CACHE_DRIVER = os.getenv("CACHE_DRIVER", "sqlite")
+CACHE_TTL = os.getenv("CACHE_TTL", "3600")  # 1 hour
 
 # @see https://requests-cache.readthedocs.io/en/stable/
 requests_cache.install_cache(
-    'osmapi_cache',
+    "osmapi_cache",
     # /tmp OpenFaaS allow /tmp be writtable even in read-only mode
     # However, is not granted that changes will persist or shared
-    db_path= '/tmp/osmapi_cache.sqlite',
+    db_path="/tmp/osmapi_cache.sqlite",
     backend=CACHE_DRIVER,
     expire_after=CACHE_TTL,
-    allowable_codes=[200, 400, 404, 500]
+    allowable_codes=[200, 400, 404, 500],
 )
+
 
 def handle(event, context):
 
@@ -25,29 +29,25 @@ def handle(event, context):
     if len(event.path) < 6:
         return {
             "statusCode": 404,
-            "headers": {
-                'content-type': 'application/json'
-            },
+            "headers": {"content-type": "application/json"},
             "body": {
-                'error': 'Not found.',
-                'examples': ["/node/1", "/way/100", "/relation/10000"]
-            }
+                "error": "Not found.",
+                "examples": ["/node/1", "/way/100", "/relation/10000"],
+            },
         }
 
-    content = requests.get(
-        OSM_API_DE_FACTO + event.path)
+    content = requests.get(OSM_API_DE_FACTO + event.path)
 
     # TODO: forward some hint for user ip
     # TODO: abort know invalid requests like *.png, *.ico, *.html, ...
 
     return {
         "statusCode": content.status_code,
-        "headers": {
-            'content-type': content.headers['Content-Type']
-        },
+        "headers": {"content-type": content.headers["Content-Type"]},
         # "body": content.text
-        "body": content.text + "\n\n" + "<!--" + repr(content.__dict__)  + '-->'
+        "body": content.text + "\n\n" + "<!--" + repr(content.__dict__) + "-->",
     }
+
 
 # def handle(event, context):
 #     return {

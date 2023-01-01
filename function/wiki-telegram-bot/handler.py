@@ -107,7 +107,8 @@ def parse_telegram2faas_request(message_text_in) -> Tuple(str, dict):
     if faas_func == "overpass-proxy":
         # pass
         req = requests.post(FAAS_BACKEND + faas_func, data=message_text_in)
-        return req, req.text
+        # Hotfix "stderr: TypeError: object of type 'Response' has no len()"
+        return req.text, req
     else:
         req = requests.get(faas_full_url)
 
