@@ -130,8 +130,11 @@ curl http://localhost:8080/User:EmericusPetro/sandbox/Wiki-as-base
 
 ### wiki-telegram-bot (draft)
 
-**As 2022-12-28, this is a proof of concept of a mere Echo bot. It will reply to private messages sent to it. It can, however, be used as example for specialized bots**
+> Deprecated. Replaced by wiki-telegram-faasbot.
 
+### wiki-telegram-chatbot (draft)
+
+### wiki-telegram-faasbot
 
 - **Environment Variables**
   - `CACHE_DRIVER`: `sqlite`
@@ -212,7 +215,9 @@ Examples of template-stores available:
 
 ### Sysadmins
 
-Full example of [Infrastructure as Code](https://en.wikipedia.org/wiki/Infrastructure_as_code) with [Ansible](https://en.wikipedia.org/wiki/Ansible_(software)) will be released soon... _but_ OpenFaaS core functionality runs mostly with this <https://github.com/openfaas/faasd/blob/master/cloud-config.txt>.
+Full example of [Infrastructure as Code](https://en.wikipedia.org/wiki/Infrastructure_as_code) with [Ansible](https://en.wikipedia.org/wiki/Ansible_(software)) <s>will be released soon...</s> _but_ OpenFaaS core functionality runs mostly with this <https://github.com/openfaas/faasd/blob/master/cloud-config.txt>.
+
+New! IaC released at https://github.com/fititnt/openstreetmap-faas-infra!
 
 ## Disclaimers
 <!--

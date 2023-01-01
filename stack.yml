@@ -33,11 +33,23 @@ functions:
     # image: wiki-as-base:latest
     image: ghcr.io/${OWNER:-fititnt}/wiki-as-base:${TAG:-latest}
 
+  # @deprecated wiki-telegram-bot (use wiki-telegram-faasbot)
   wiki-telegram-bot:
     lang: python3-http
     handler: ./function/wiki-telegram-bot
     # image: wiki-telegram-bot:latest
     image: ghcr.io/${OWNER:-fititnt}/wiki-telegram-bot:${TAG:-latest}
+
+  wiki-telegram-chatbot:
+    lang: python3-http
+    handler: ./function/wiki-telegram-chatbot
+    image: ghcr.io/${OWNER:-fititnt}/wiki-telegram-chatbot:${TAG:-latest}
+
+  wiki-telegram-faasbot:
+    lang: python3-http
+    handler: ./function/wiki-telegram-faasbot
+    image: ghcr.io/${OWNER:-fititnt}/wiki-telegram-faasbot:${TAG:-latest}
+
 # configuration:
 #   templates:
 #     - name: dockerfile
