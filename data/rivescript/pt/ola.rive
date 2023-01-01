@@ -1,0 +1,21 @@
+! version = 2.0
+
+// Substituições comuns
+! sub é = e
+! sub olá = ola
+! sub vc = voce
+! sub você = voce
+
+// Início
++ ola bot
+- Olá humano.
+
++ meu nome e *
+- <set nome=<formal>>Prazer em conhecer você, <get nome>.
+
++ (qual e meu nome|quem sou eu)
+- Você é <get nome>, certo?
+
++ *
+- Não sei o que responder.
+- Tente perguntar de forma diferente
