@@ -3,10 +3,14 @@
 # Default main Wiki-as-base at https://wiki.openstreetmap.org/wiki/User:EmericusPetro/sandbox/Wiki-as-base
 
 from ast import Tuple
+
+# import shutil
 import urllib
 import json
 import os
 import requests
+
+from rivescript import RiveScript
 
 # import requests_cache
 
@@ -47,100 +51,45 @@ FAAS_ALLOWED = os.getenv(
 ).split(",")
 
 
-def response_as_markdown(content: str, mediatype: str = None):
-    # TODO deal with mediatype
-    return "```\n" + content + "\n```"
+# ____________________________________________________________________________ #
+
+# @TODO ideally the rivestript server should initialyze only once and not
+#       in each request, see
+#       https://github.com/aichaos/rivescript/wiki/Make-a-Single-Shared-Bot-Instance
+#       This TODO is mostly to check later if we're somewhat okay
 
 
-def parse_telegram_in(body_text: str):
-    return json.loads(body_text)
+def bot_brain_init_external_files() -> str:
+    """bot_brain_init_external_files fetch files and return local path"""
+    brain_files = {
+        "ola.rive": "https://raw.githubusercontent.com/fititnt/openstreetmap-serverless-functions/main/data/rivescript/pt/ola.rive"
+    }
+    if not os.path.isdir("/tmp/brain"):
+        os.makedirs("/tmp/brain")
+
+    for finename, url in brain_files.items():
+        if not os.path.isfile("/tmp/brain/" + finename):
+            response = requests.get(url, stream=True)
+            with open("/tmp/brain/" + finename, "w") as out_file:
+                out_file.write(response.text)
+            # with open("/tmp/brain/" + finename, "w") as out_file:
+            #     shutil.copyfileobj(response.raw, out_file)
+    return "/tmp/brain/"
 
 
-def parse_telegram2faas_required(message_text_in):
-    if message_text_in.startswith("/faas"):
-        return True
-    if message_text_in.startswith(tuple(FAAS_ALLOWED)):
-        return True
-    if ("/" + message_text_in).startswith(tuple(FAAS_ALLOWED)):
-        return True
-    return False
+_brain_base = bot_brain_init_external_files()
+# print(os.listdir(_brain_base))
+
+BOT = RiveScript()
+BOT.load_directory(_brain_base)
+BOT.sort_replies()
+
+# ____________________________________________________________________________ #
 
 
-# def parse_telegram2faas_request(message_text_in) -> tuple(str, dict):
-def parse_telegram2faas_request(message_text_in) -> Tuple(str, dict):
-    options = []
-    faas_func = None
-    faas_func_arg = ""
+def parse_telegram_out(message_reply: str, chat_id: int):
 
-    # This part needs more testing
-    if (
-        len(TELEGRAM_BOT_NAME) > 0
-        and message_text_in.find("@" + TELEGRAM_BOT_NAME) > -1
-    ):
-        message_text_in = message_text_in.replace("@" + TELEGRAM_BOT_NAME, "")
-
-    for item in FAAS_ALLOWED:
-        item_norm = item.lower().replace("-", "")
-        option = f"/faas__{item_norm}"
-        options.append(option)
-
-        if message_text_in.startswith(f"/faas /{item_norm}"):
-            faas_func = item
-            faas_func_arg = message_text_in[len(f"/faas /{item_norm}") :].strip()
-            break
-
-        if message_text_in.startswith(option):
-            faas_func = item
-            faas_func_arg = message_text_in[len(option) :].strip()
-            break
-
-        if message_text_in.startswith("/" + option):
-            faas_func = item
-            faas_func_arg = message_text_in[len("/" + option) :].strip()
-            break
-
-    if faas_func is None:
-        return "\n".join(options), None
-
-    faas_full_url = FAAS_BACKEND + faas_func + faas_func_arg
-
-    if faas_func == "overpass-proxy":
-        # pass
-        req = requests.post(FAAS_BACKEND + faas_func, data=message_text_in)
-        # Hotfix "stderr: TypeError: object of type 'Response' has no len()"
-        return req.text, req
-    else:
-        req = requests.get(faas_full_url)
-
-    if req.status_code == 200:
-        return response_as_markdown(req.text, req.headers["content-type"]), None
-
-    if (
-        req.status_code == 404
-        and req.headers["content-type"].startswith("application/json")
-        and "examples" in req.json()
-    ):
-        return "404\n\n" + "\n".join(req.json()["examples"]), None
-    else:
-        return f"{req.status_code} {faas_full_url}", None
-
-    # return '@TODO proxy this request ' + message_text_in + '<' + faas_func_arg + '>'
-    # return False
-
-
-def parse_telegram_out(tlg_in: str):
-    chat_id = tlg_in["message"]["chat"]["id"]
-    # notification_text = urllib.parse.quote_plus(tlg_in['message']['text'])
-
-    message_text = ""
-    if "text" in tlg_in["message"]:
-        message_text = tlg_in["message"]["text"]
-
-    if parse_telegram2faas_required(message_text):
-        notification_text, req2 = parse_telegram2faas_request(message_text)
-    else:
-        notification_text = urllib.parse.quote_plus(message_text)
-        req2 = None
+    notification_text = urllib.parse.quote_plus(message_reply)
 
     # raise Exception(notification_text)
 
@@ -153,16 +102,20 @@ def parse_telegram_out(tlg_in: str):
     if len(extras):
         extra_params = "&" + "&".join(extras)
 
+    resp = requests.get(
+        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={notification_text}{extra_params}"
+    )
+
     # Maybe increase the 200 characters to avoid send everyting as download file
-    if len(notification_text) <= 200 or req2 is None:
-        resp = requests.get(
-            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={notification_text}{extra_params}"
-        )
-    else:
-        resp = requests.post(
-            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument?chat_id={chat_id}{extra_params}",
-            data=notification_text,
-        )
+    # if len(notification_text) <= 200 or req2 is None:
+    #     resp = requests.get(
+    #         f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={notification_text}{extra_params}"
+    #     )
+    # else:
+    #     resp = requests.post(
+    #         f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument?chat_id={chat_id}{extra_params}",
+    #         data=notification_text,
+    #     )
 
     # https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={chat_id}&text={notification_text}.
     return [resp.status_code, resp.text, notification_text]
@@ -170,19 +123,42 @@ def parse_telegram_out(tlg_in: str):
 
 def handle(event, context):
 
-    # We would need to validate Telegram servers here (or protect the API)
-    # at firewall/ip/etc strategy.
-
-    # print(repr(event.__dict__))
-    # print(repr(context.__dict__))
-
     # @TODO implement bot also reply to edited messages
     tlg_in_msg = False
     tlg_out_msg = False
+
+    message_reply = "...silence..."
+    err = True
     if event.method == "POST" and event.body and len(event.body) > 10:
-        tlg_in_msg = parse_telegram_in(event.body)
-        if tlg_in_msg and "message" in tlg_in_msg:
-            tlg_out_msg = parse_telegram_out(tlg_in_msg)
+        tlg_in_msg = json.loads(event.body)
+        message = {}
+        message_text = ""
+        user_id = 1
+        chat_id = None
+
+        # @TODO deal with edited messages, files, etc
+        if "message" in tlg_in_msg and "text" in tlg_in_msg["message"]:
+            message_text = tlg_in_msg["message"]["text"]
+
+        if (
+            "message" in tlg_in_msg
+            and "chat" in tlg_in_msg["message"]
+            and "id" in tlg_in_msg["message"]["chat"]
+        ):
+            chat_id = tlg_in_msg["message"]["chat"]["id"]
+
+        if (
+            "message" in tlg_in_msg
+            and "from" in tlg_in_msg["message"]
+            and "id" in tlg_in_msg["message"]["from"]
+        ):
+            user_id = tlg_in_msg["message"]["from"]["id"]
+
+        # chat_id = message["chat"]["id"]
+
+        message_reply = BOT.reply("user" + str(user_id), message_text)
+
+        parse_telegram_out(message_reply, chat_id)
 
     return {
         "statusCode": 200,
@@ -190,6 +166,8 @@ def handle(event, context):
         "body": {
             "input": tlg_in_msg,
             "output": tlg_out_msg,
+            "message_in": message_text,
+            "message_reply": message_reply,
             # 'debug': "Hello from OpenFaaS! <<" + event.path + ">> <<" + repr(context.__dict__) + '>> <<' + repr(event.__dict__) + '>>' + '<<tok ' + str(TELEGRAM_BOT_TOKEN) + 'tok >>' + '<<' + str(get_faas_secret(TELEGRAM_BOT_FILE_TOKEN)) + '>>'
             # 'debug': "Hello from OpenFaaS! <<" + event.path + ">> <<" + repr(context.__dict__) + '>> <<' + repr(event.__dict__) + '>>'
         },

@@ -134,6 +134,39 @@ curl http://localhost:8080/User:EmericusPetro/sandbox/Wiki-as-base
 
 ### wiki-telegram-chatbot (draft)
 
+<!--
+## rebuild drill
+cp -r $(pwd)/* ~/Downloads/docker-build
+cd ~/Downloads/docker-build
+
+faas-cli build -f ./stack.yml --filter wiki-telegram-chatbot && docker run --name wiki-telegram-chatbot --publish 8080:8080 --env TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" -d ghcr.io/fititnt/wiki-telegram-chatbot && docker logs --follow wiki-telegram-chatbot
+docker container stop wiki-telegram-chatbot && docker container rm wiki-telegram-chatbot
+
+# test message
+curl --tlsv1.2 -v -k -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache"  -d '{
+"update_id":10000,
+"message":{
+  "date":1441645532,
+  "chat":{
+     "last_name":"Test Lastname",
+     "id":131936548,
+     "first_name":"Test",
+     "username":"Test"
+  },
+  "message_id":1365,
+  "from":{
+     "last_name":"fititnt",
+     "id":131936548,
+     "first_name":"Test",
+     "username":"Test"
+  },
+  "text":"ola bot"
+}
+}' "http://localhost:8080/"
+
+
+-->
+
 ### wiki-telegram-faasbot
 
 - **Environment Variables**
@@ -179,7 +212,7 @@ curl https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://osm
 <!--
 ## rebuild drill
 cp -r $(pwd)/* ~/Downloads/docker-build
-cd ~/Downloads/docker-build-dir
+cd ~/Downloads/docker-build
 
 faas-cli build -f ./stack.yml --filter wiki-telegram-bot && docker run --name wiki-telegram-bot --publish 8080:8080 --env TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" -d ghcr.io/fititnt/wiki-telegram-bot && docker logs --follow wiki-telegram-bot
 docker container stop wiki-telegram-bot && docker container rm wiki-telegram-bot
