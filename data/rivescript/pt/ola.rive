@@ -16,6 +16,11 @@
 + (qual e meu nome|quem sou eu)
 - Você é <get nome>, certo?
 
++ (ajuda|help)
+- No momento este chatbot é muito simples e pouco documentado.
+^ Peça ajuda no telegram com @fititnt ou no @grupoumbraosm
+
 + *
 - Não sei o que responder.
 - Tente perguntar de forma diferente
+- Não entendi. Peça ajuda no Telegram com @fititnt ou no @grupoumbraosm

@@ -165,8 +165,13 @@ curl --tlsv1.2 -v -k -X POST -H "Content-Type: application/json" -H "Cache-Contr
 }' "http://localhost:8080/"
 
 
--->
+```bash
 
+# Configure telegram webhook first time. Change <TELEGRAM_BOT_TOKEN> and ?url=
+curl https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://osm-faas.etica.ai/function/wiki-telegram-bot
+#   > {"ok":true,"result":true,"description":"Webhook was set"}
+```
+-->
 ### wiki-telegram-faasbot
 
 - **Environment Variables**

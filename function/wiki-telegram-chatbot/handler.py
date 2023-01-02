@@ -2,7 +2,7 @@
 # @see https://www.freecodecamp.org/news/telegram-push-notifications-58477e71b2c2/
 # Default main Wiki-as-base at https://wiki.openstreetmap.org/wiki/User:EmericusPetro/sandbox/Wiki-as-base
 
-from ast import Tuple
+# from ast import Tuple
 
 # import shutil
 import urllib
@@ -106,18 +106,6 @@ def parse_telegram_out(message_reply: str, chat_id: int):
         f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={notification_text}{extra_params}"
     )
 
-    # Maybe increase the 200 characters to avoid send everyting as download file
-    # if len(notification_text) <= 200 or req2 is None:
-    #     resp = requests.get(
-    #         f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={notification_text}{extra_params}"
-    #     )
-    # else:
-    #     resp = requests.post(
-    #         f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument?chat_id={chat_id}{extra_params}",
-    #         data=notification_text,
-    #     )
-
-    # https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={chat_id}&text={notification_text}.
     return [resp.status_code, resp.text, notification_text]
 
 
@@ -128,6 +116,7 @@ def handle(event, context):
     tlg_out_msg = False
 
     message_reply = "...silence..."
+    message_text = ''
     err = True
     if event.method == "POST" and event.body and len(event.body) > 10:
         tlg_in_msg = json.loads(event.body)
@@ -161,7 +150,7 @@ def handle(event, context):
         parse_telegram_out(message_reply, chat_id)
 
     return {
-        "statusCode": 200,
+        "statusCode": 400,
         "headers": {"content-type": "application/json; charset=utf-8"},
         "body": {
             "input": tlg_in_msg,
