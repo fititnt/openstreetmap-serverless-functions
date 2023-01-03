@@ -141,6 +141,7 @@ wiki_as_base --page-title 'User:EmericusPetro/sandbox/Chatbot-por'
 curl http://localhost:8080/User:EmericusPetro/sandbox/Chatbot-por.zip > chatbot-por.zip
 wiki_as_base --page-title 'User:EmericusPetro/sandbox/Chatbot-por' --verbose --output-zip-file chatbot-por-cli.zip
 
+curl https://osm-faas.etica.ai/wiki-as-base/User:EmericusPetro/sandbox/Chatbot-por.zip > chatbot-por-online.zip
 -->
 
 ### wiki-telegram-bot (draft)
@@ -178,6 +179,9 @@ curl --tlsv1.2 -v -k -X POST -H "Content-Type: application/json" -H "Cache-Contr
   "text":"ola bot"
 }
 }' "http://localhost:8080/"
+
+# about (show metadata)
+curl http://localhost:8080/__about
 
 
 ```bash
@@ -254,8 +258,11 @@ curl "http://localhost:8080/overpass-proxy" --data @query.osm --output output.os
 ## Todo's for functions
 - [ ] Normalize and document strategy on how to change the User Agent to make external requests. _Use case: allow de facto backends report or block individual misuse of resources (these FaaS don't store this kind of data)_
 - [ ] Normalize and document (or explicitly say is not enabled) short-lived local cache. _Use case: 15 to 60min cache over Wiki requests_
-- [ ] When make sense, create an endpoint, like `__about` to print variables of the FaaS, including version of used libraries. _Use case: debug caching issues and/or use of older versions_
-- [ ] Deal with binary responses. See python3-http-osm on [template/README.md](template/README.md)
+- [ ] When it makes sense, create an endpoint, like `__about` to print variables of the FaaS, including versions of used libraries. _Use case: debug caching issues and/or use of older versions_
+- [x] Deal with binary responses. See python3-http-osm on [template/README.md](template/README.md)
+- [ ] The chatbots that abstract `overpass-proxy` should respond with attached file *know limitation on Telegram: 50MB)
+- [ ] Draft a `nominatim-proxy` function
+- [ ] A `nominatim-proxy` function must be configured to allow faas servers document sufficient information to meet the [Nominatim Usage Policy](https://operations.osmfoundation.org/policies/nominatim/)
 
 ## Guides
 

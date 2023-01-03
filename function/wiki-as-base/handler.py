@@ -66,7 +66,7 @@ def handle(event, context):
             },
         }
 
-    if search_path in ["_about", "__about"]:
+    if search_path in ["__about"]:
         return {
             "statusCode": 200,
             "headers": {"content-type": "application/json; charset=utf-8"},

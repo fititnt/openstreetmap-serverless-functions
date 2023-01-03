@@ -5,10 +5,14 @@
 # from ast import Tuple
 
 # import shutil
+import datetime
+import shutil
 import urllib
 import json
 import os
+from importlib_metadata import version
 import requests
+import wiki_as_base
 
 from rivescript import RiveScript
 
@@ -50,6 +54,19 @@ FAAS_ALLOWED = os.getenv(
     "FAAS_ALLOWED", "api-rdf,api-proxy,overpass-proxy,wiki-as-base,nodeinfo,cows"
 ).split(",")
 
+CHATBOT_WIKIASBASE_BRAIN_0 = os.getenv(
+    "CHATBOT_WIKIASBASE_BRAIN_0", "User:EmericusPetro/sandbox/Chatbot-por"
+)
+
+# @TODO implement CHATBOT_WIKIASBASE_BRAIN_1 and CHATBOT_WIKIASBASE_BRAIN_2
+CHATBOT_WIKIASBASE_BRAIN_1 = os.getenv(
+    "CHATBOT_WIKIASBASE_BRAIN_1",
+    "User:EmericusPetro/sandbox/Chatbot-por/OSMCPLPChatbot",
+)
+CHATBOT_WIKIASBASE_BRAIN_2 = os.getenv("CHATBOT_WIKIASBASE_BRAIN_2", "")
+
+RIVER_BRAIN_SOURCES = []
+RIVER_BRAIN_UPDATED = -1
 
 # ____________________________________________________________________________ #
 
@@ -59,7 +76,7 @@ FAAS_ALLOWED = os.getenv(
 #       This TODO is mostly to check later if we're somewhat okay
 
 
-def bot_brain_init_external_files() -> str:
+def bot_brain_init_external_files_fallback() -> str:
     """bot_brain_init_external_files fetch files and return local path"""
     brain_files = {
         "ola.rive": "https://raw.githubusercontent.com/fititnt/openstreetmap-serverless-functions/main/data/rivescript/pt/ola.rive"
@@ -77,7 +94,27 @@ def bot_brain_init_external_files() -> str:
     return "/tmp/brain/"
 
 
-_brain_base = bot_brain_init_external_files()
+def bot_brain_init_external_files_wikiasbase() -> str:
+    """bot_brain_init_external_files_wikiasbase fetch from wikibase"""
+
+    wikimarkup_raw = wiki_as_base.wiki_as_base_request(CHATBOT_WIKIASBASE_BRAIN_0)
+    wikiasbase_jsonld = wiki_as_base.wiki_as_base_all(wikimarkup_raw)
+    # TODO implement additional files
+    wabzip = wiki_as_base.WikiAsBase2Zip(wikiasbase_jsonld, verbose=True)
+    wabzip.output("/tmp/brain.zip")
+    shutil.unpack_archive("/tmp/brain.zip", "/tmp/brain")
+    return "/tmp/brain/"
+
+
+try:
+    _brain_base = bot_brain_init_external_files_wikiasbase()
+    RIVER_BRAIN_SOURCES.append(CHATBOT_WIKIASBASE_BRAIN_0)
+    RIVER_BRAIN_UPDATED = datetime.datetime.now().isoformat()
+except Exception:
+    _brain_base = bot_brain_init_external_files_fallback()
+    RIVER_BRAIN_SOURCES.append("!!!fallback!!!")
+    RIVER_BRAIN_UPDATED = datetime.datetime.now().isoformat()
+
 # print(os.listdir(_brain_base))
 
 BOT = RiveScript()
@@ -109,18 +146,44 @@ def parse_telegram_out(message_reply: str, chat_id: int):
     return [resp.status_code, resp.text, notification_text]
 
 
+def about() -> dict:
+    """about quick summary of what this faas is about"""
+    about = {
+        "@type": "faas/wiki-telegram-chatbot",
+        "faas_name": "wiki-as-base",
+        "wiki_as_base.__version__": version("wiki_as_base"),
+        "rivescript.__version__": version("rivescript"),
+        "RIVER_BRAIN_SOURCES": RIVER_BRAIN_SOURCES,
+        "RIVER_BRAIN_UPDATED": RIVER_BRAIN_UPDATED,
+        # "CACHE_TTL": CACHE_TTL,
+        # "USER_AGENT": USER_AGENT,
+        # "WIKI_API": WIKI_API,
+    }
+    return about
+
+
 def handle(event, context):
+    search_path = event.path.lstrip("/")
+
+    if search_path in ["__about"]:
+        return {
+            "statusCode": 200,
+            "headers": {"content-type": "application/json; charset=utf-8"},
+            "body": {
+                "data": [about()],
+            },
+        }
 
     # @TODO implement bot also reply to edited messages
     tlg_in_msg = False
     tlg_out_msg = False
 
     message_reply = "...silence..."
-    message_text = ''
+    message_text = ""
     err = True
     if event.method == "POST" and event.body and len(event.body) > 10:
         tlg_in_msg = json.loads(event.body)
-        message = {}
+        # message = {}
         message_text = ""
         user_id = 1
         chat_id = None
