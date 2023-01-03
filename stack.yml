@@ -27,8 +27,12 @@ functions:
     handler: ./function/sentimentanalysis
     image: ghcr.io/${OWNER:-fititnt}/sentimentanalysis:${TAG:-latest}
 
+  # @see https://github.com/openfaas/python-flask-template/pull/39
+  # @see https://github.com/openfaas/python-flask-template/blob/master/template/python3-http-debian/index.py
+  # @TODO use application/zip instead of application/octet-stream
   wiki-as-base:
     lang: python3-http
+    # lang: python3-http-debian
     handler: ./function/wiki-as-base
     # image: wiki-as-base:latest
     image: ghcr.io/${OWNER:-fititnt}/wiki-as-base:${TAG:-latest}

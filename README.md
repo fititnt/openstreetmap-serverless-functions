@@ -109,6 +109,15 @@ docker container stop overpass-proxy && docker container rm overpass-proxy && do
   - `WIKI_API`: `https://wiki.openstreetmap.org/w/api.php`
   - `USER_AGENT`: `wiki-as-base/1.0`
 
+Currently this FaaS is a syntax sugar for the latest released version of the python package `wiki_as_base`.
+See https://github.com/fititnt/wiki_as_base-py for internal details.
+However, the opinionated defaults:
+
+1. Only accept get requests and by default output the JSON-LD version.
+2. If the page title has a suffix `.zip`, the output will be the `wiki_as_base` zip package with verbose mode enabled.
+3. An GET endpoint `__about` exposes some metadata, in particular the used version of `wiki_as_base`.
+4. The FaaS endpoint also makes use of local cache with `CACHE_TTL`. Repeated requests in a short time will overload the _de facto_ backends unless the user makes a serial request of a large amount of different page titles.
+
 <!--
 ## rebuild drill
 cp -r $(pwd)/* ~/Downloads/docker-build
@@ -128,6 +137,9 @@ curl http://localhost:8080/__abou
 wiki_as_base --page-title 'User:EmericusPetro/sandbox/Chatbot-por'
 
 @bot /faas__wikiasbase /User:EmericusPetro/sandbox/Wiki-as-base
+
+curl http://localhost:8080/User:EmericusPetro/sandbox/Chatbot-por.zip > chatbot-por.zip
+wiki_as_base --page-title 'User:EmericusPetro/sandbox/Chatbot-por' --verbose --output-zip-file chatbot-por-cli.zip
 
 -->
 
