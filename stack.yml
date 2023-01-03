@@ -2,6 +2,14 @@ version: 1.0
 provider:
   name: openfaas
 functions:
+
+  # ## Templates
+  # python3-http-osm:
+  #   lang: python3-http
+  #   handler: ./templates/python3-http-osm
+  #   image: ghcr.io/${OWNER:-fititnt}/python3-http-osm:${TAG:-latest}
+
+  ## Functions
   api-proxy:
     lang: python3-http
     handler: ./function/api-proxy
@@ -33,6 +41,7 @@ functions:
   wiki-as-base:
     lang: python3-http
     # lang: python3-http-debian
+    # lang: python3-flask
     handler: ./function/wiki-as-base
     # image: wiki-as-base:latest
     image: ghcr.io/${OWNER:-fititnt}/wiki-as-base:${TAG:-latest}
@@ -54,8 +63,11 @@ functions:
     handler: ./function/wiki-telegram-faasbot
     image: ghcr.io/${OWNER:-fititnt}/wiki-telegram-faasbot:${TAG:-latest}
 
-# configuration:
-#   templates:
-#     - name: dockerfile
-#     - name: python3-http
-#       source: https://github.com/openfaas/python-flask-template
+configuration:
+  templates:
+    - name: python3-http
+      source: https://github.com/openfaas/python-flask-template
+
+    # This is small fork to add binary output for zip files
+    - name: python3-http-osm
+      source: https://github.com/fititnt/openstreetmap-serverless-functions

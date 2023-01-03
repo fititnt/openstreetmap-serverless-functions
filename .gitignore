@@ -1,5 +1,6 @@
 function/build
 function/template
-template
+# template
+.DEREK.yml
 function/wiki-telegram-bot/telegram.schema.json
 function/wiki-telegram-bot/echobot.py
