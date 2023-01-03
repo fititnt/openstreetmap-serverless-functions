@@ -123,6 +123,9 @@ docker container stop wiki-as-base && docker container rm wiki-as-base && docker
 # tests
 curl http://localhost:8080/Key:maxspeed
 curl http://localhost:8080/User:EmericusPetro/sandbox/Wiki-as-base
+curl http://localhost:8080/User:EmericusPetro/sandbox/Chatbot-por
+curl http://localhost:8080/__abou
+wiki_as_base --page-title 'User:EmericusPetro/sandbox/Chatbot-por'
 
 @bot /faas__wikiasbase /User:EmericusPetro/sandbox/Wiki-as-base
 
@@ -235,6 +238,11 @@ curl "http://localhost:8080/overpass-proxy" --data @query.osm --output output.os
 ### Debugging wiki-telegram-bot
 - https://core.telegram.org/bots/webhooks
 -->
+
+## Todo's for functions
+- [ ] Normalize and document strategy on how to change the User Agent to make external requests. _Use case: allow de facto backends report or block individual misuse of resources (these FaaS don't store this kind of data)_
+- [ ] Normalize and document (or explicitly say is not enabled) short-lived local cache. _Use case: 15 to 60min cache over Wiki requests_
+- [ ] When make sense, create an endpoint, like `__about` to print variables of the FaaS, including version of used libraries. _Use case: debug caching issues and/or use of older versions_
 
 ## Guides
 

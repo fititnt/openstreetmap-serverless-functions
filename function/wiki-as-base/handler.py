@@ -1,10 +1,14 @@
 # SPDX-License-Identifier: Unlicense OR 0BSD
 
+# @TODO maybe refactor this code in something better (without changing public
+#       interface)
+
 # Default main Wiki-as-base at https://wiki.openstreetmap.org/wiki/User:EmericusPetro/sandbox/Wiki-as-base
 
 # https://osm-faas.etica.ai/function/wiki-as-db/User:EmericusPetro/sandbox/Wiki-as-base
 
 import os
+from importlib_metadata import version
 import mwparserfromhell
 import requests
 import requests_cache
@@ -27,6 +31,19 @@ requests_cache.install_cache(
 )
 
 
+def about() -> dict:
+    """about quick summary of what this faas is about"""
+    about = {
+        "@type": "faas/wiki-as-base",
+        "faas_name": "wiki-as-base",
+        "wiki_as_base.__version__": version("wiki_as_base"),
+        "CACHE_TTL": CACHE_TTL,
+        "USER_AGENT": USER_AGENT,
+        "WIKI_API": WIKI_API,
+    }
+    return about
+
+
 def handle(event, context):
     search_path = event.path.lstrip("/")
     # if search_path in ['favicon.ico']:
@@ -39,7 +56,21 @@ def handle(event, context):
             "headers": {"content-type": "application/json; charset=utf-8"},
             "body": {
                 "error": "Not found",
-                "examples": ["/Key:maxspeed", "/Tag:highway=residential"],
+                "examples": [
+                    "Key:maxspeed",
+                    "Tag:highway=residential",
+                    "User:EmericusPetro/sandbox/Wiki-as-base",
+                    "__about",
+                ],
+            },
+        }
+
+    if search_path in ["_about", "__about"]:
+        return {
+            "statusCode": 200,
+            "headers": {"content-type": "application/json; charset=utf-8"},
+            "body": {
+                "data": [about()],
             },
         }
 
@@ -47,7 +78,7 @@ def handle(event, context):
     #     WIKI_API + event.path)
     req, parsed = parse_wiki_request(search_path)
 
-    parsed_raw = wiki_as_base.wiki_as_base_raw(parsed)
+    # parsed_raw = wiki_as_base.wiki_as_base_raw(parsed)
 
     result = wiki_as_base.wiki_as_base_request(search_path)
     data = {"error": "no data from request"}
