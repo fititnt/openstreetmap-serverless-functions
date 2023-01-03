@@ -14,3 +14,6 @@ def format_body(res, content_type):
 ```
 
 > @TODO discuss with upstream to potentially add this
+
+- Other links:
+  - https://github.com/openfaas/templates/issues?q=binary

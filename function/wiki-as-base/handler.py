@@ -91,7 +91,7 @@ def handle(event, context):
         data = wiki_as_base.wiki_as_base_all(result)
         status_code = 200
         if content_type == "application/zip":
-            with tempfile.TemporaryFile() as fp:
+            with tempfile.TemporaryFile(mode='w+b') as fp:
                 wabzip = wiki_as_base.WikiAsBase2Zip(data, verbose=True)
                 # wabzip.output(test_dir + "/temp/chatbotpor.zip")
                 wabzip.output(fp)
@@ -99,7 +99,9 @@ def handle(event, context):
                 # data_bytes = fp.read()
                 # data = data_bytes.decode()
                 data = fp.read()
-                content_type = "application/octet-stream"
+                content_type = "application/zip"
+                # content_type = "application/octet-stream"
+                # raise ValueError([type(data), len(data)])
 
                 # the OpenFaaS python-http will enforce str() on this output
                 # so we do it upfront
@@ -116,7 +118,7 @@ def handle(event, context):
     return {
         "statusCode": status_code,
         # "headers": {"content-type": "application/json; charset=utf-8"},
-        "headers": {"content-type": content_type},
+        "headers": {"Content-type": content_type},
         # "body": content.text
         # "body": content.text + "\n\n" + "<!--" + repr(content.__dict__)  + '-->'
         # "body": parsed

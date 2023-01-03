@@ -39,11 +39,9 @@ functions:
   # @see https://github.com/openfaas/python-flask-template/blob/master/template/python3-http-debian/index.py
   # @TODO use application/zip instead of application/octet-stream
   wiki-as-base:
-    lang: python3-http
-    # lang: python3-http-debian
-    # lang: python3-flask
+    # lang: python3-http
+    lang: python3-http-osm
     handler: ./function/wiki-as-base
-    # image: wiki-as-base:latest
     image: ghcr.io/${OWNER:-fititnt}/wiki-as-base:${TAG:-latest}
 
   # @deprecated wiki-telegram-bot (use wiki-telegram-faasbot)

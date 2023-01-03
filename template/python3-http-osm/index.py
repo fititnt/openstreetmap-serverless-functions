@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-from flask import Flask, request, jsonify
+import sys
+from flask import Flask, request, jsonify, make_response
 from waitress import serve
 import os
 
@@ -75,7 +76,17 @@ def call_handler(path):
     event = Event()
     context = Context()
     response_data = handler.handle(event, context)
-    
+
+    content_type = get_content_type(response_data)
+    if content_type in ['application/zip', 'application/octet-stream'] and \
+        isinstance(response_data['body'], bytes):
+
+        flask_resp = make_response(response_data['body'])
+        flask_resp.headers['Content-type'] = content_type
+
+        return flask_resp
+
+    # raise ValueError([content_type, type(response_data['body'])])
     resp = format_response(response_data)
     return resp
 
