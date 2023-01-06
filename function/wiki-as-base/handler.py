@@ -84,67 +84,29 @@ def handle(event, context):
         content_type = "application/zip"
         search_path = search_path.rstrip(".zip")
 
-    wikitext, _wikiapi_meta = wiki_as_base.wiki_as_base_request(search_path)
+    wikitext, wikiapi_meta = wiki_as_base.wiki_as_base_request(search_path)
     data = {"error": "no data from request"}
+    _data_meta = {}
     status_code = 400
     if wikitext:
-        data = wiki_as_base.wiki_as_base_all(wikitext)
+
+        if wikiapi_meta:
+            WIKI_API = os.getenv("WIKI_API", wiki_as_base.WIKI_API)
+            _data_meta = wiki_as_base.wiki_as_base_meta_from_api(wikiapi_meta)
+            _data_meta["source"] = WIKI_API
+
+        data = wiki_as_base.wiki_as_base_all(wikitext, meta=_data_meta)
         status_code = 200
         if content_type == "application/zip":
-            with tempfile.TemporaryFile(mode='w+b') as fp:
+            with tempfile.TemporaryFile(mode="w+b") as fp:
                 wabzip = wiki_as_base.WikiAsBase2Zip(data, verbose=True)
-                # wabzip.output(test_dir + "/temp/chatbotpor.zip")
                 wabzip.output(fp)
                 fp.seek(0)
-                # data_bytes = fp.read()
-                # data = data_bytes.decode()
                 data = fp.read()
                 content_type = "application/zip"
-                # content_type = "application/octet-stream"
-                # raise ValueError([type(data), len(data)])
-
-                # the OpenFaaS python-http will enforce str() on this output
-                # so we do it upfront
-                # data = data_bytes.decode('hex')
-                # data = data_bytes.decode('iso-8859-1')
-                # data = data_bytes.decode('ascii')
-                # pass
-        # if data:
-        #     print(json.dumps(data, ensure_ascii=False, indent=2))
-
-    # TODO: forward some hint for user ip
-    # TODO: abort know invalid requests like *.png, *.ico, *.html, ...
 
     return {
         "statusCode": status_code,
-        # "headers": {"content-type": "application/json; charset=utf-8"},
         "headers": {"Content-type": content_type},
-        # "body": content.text
-        # "body": content.text + "\n\n" + "<!--" + repr(content.__dict__)  + '-->'
-        # "body": parsed
-        # "body": parsed_raw,
         "body": data,
     }
-
-
-# # @see https://github.com/earwig/mwparserfromhell/
-# def parse_wiki_request(title):
-#     params = {
-#         "action": "query",
-#         "prop": "revisions",
-#         "rvprop": "content",
-#         "rvslots": "main",
-#         "rvlimit": 1,
-#         "titles": title,
-#         "format": "json",
-#         "formatversion": "2",
-#     }
-#     # headers = {"User-Agent": "My-Bot-Name/1.0"}
-#     headers = {"User-Agent": USER_AGENT}
-#     req = requests.get(WIKI_API, headers=headers, params=params)
-#     # print(req)
-#     # return req, req
-#     res = req.json()
-#     revision = res["query"]["pages"][0]["revisions"][0]
-#     text = revision["slots"]["main"]["content"]
-#     return req, mwparserfromhell.parse(text)

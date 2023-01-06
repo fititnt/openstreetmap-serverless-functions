@@ -133,7 +133,7 @@ docker container stop wiki-as-base && docker container rm wiki-as-base && docker
 curl http://localhost:8080/Key:maxspeed
 curl http://localhost:8080/User:EmericusPetro/sandbox/Wiki-as-base
 curl http://localhost:8080/User:EmericusPetro/sandbox/Chatbot-por
-curl http://localhost:8080/__abou
+curl http://localhost:8080/__about
 wiki_as_base --page-title 'User:EmericusPetro/sandbox/Chatbot-por'
 
 @bot /faas__wikiasbase /User:EmericusPetro/sandbox/Wiki-as-base
