@@ -84,11 +84,11 @@ def handle(event, context):
         content_type = "application/zip"
         search_path = search_path.rstrip(".zip")
 
-    result = wiki_as_base.wiki_as_base_request(search_path)
+    wikitext, _wikiapi_meta = wiki_as_base.wiki_as_base_request(search_path)
     data = {"error": "no data from request"}
     status_code = 400
-    if result:
-        data = wiki_as_base.wiki_as_base_all(result)
+    if wikitext:
+        data = wiki_as_base.wiki_as_base_all(wikitext)
         status_code = 200
         if content_type == "application/zip":
             with tempfile.TemporaryFile(mode='w+b') as fp:
