@@ -11,7 +11,6 @@ import os
 import tempfile
 from importlib_metadata import version
 import requests_cache
-import wiki_as_base
 from wiki_as_base import WikitextAsData
 
 WIKI_AS_BASE_LIB_VERSION = version("wiki_as_base")
@@ -68,6 +67,7 @@ def handle(event, context):
                     "Key:maxspeed",
                     "Tag:highway=residential",
                     "User:EmericusPetro/sandbox/Wiki-as-base",
+                    "User:EmericusPetro/sandbox/Wiki-as-base.zip",
                     "__about",
                 ],
             },

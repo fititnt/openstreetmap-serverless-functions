@@ -53,6 +53,7 @@ functions:
 
   wiki-telegram-chatbot:
     lang: python3-http
+    # lang: python3-http-osm
     handler: ./function/wiki-telegram-chatbot
     image: ghcr.io/${OWNER:-fititnt}/wiki-telegram-chatbot:${TAG:-latest}
 

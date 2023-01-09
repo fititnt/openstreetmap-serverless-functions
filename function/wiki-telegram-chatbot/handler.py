@@ -12,7 +12,9 @@ import json
 import os
 from importlib_metadata import version
 import requests
-import wiki_as_base
+
+# import wiki_as_base
+from wiki_as_base import WikitextAsData
 
 from rivescript import RiveScript
 
@@ -97,23 +99,37 @@ def bot_brain_init_external_files_fallback() -> str:
 def bot_brain_init_external_files_wikiasbase() -> str:
     """bot_brain_init_external_files_wikiasbase fetch from wikibase"""
 
-    wikimarkup_raw = wiki_as_base.wiki_as_base_request(CHATBOT_WIKIASBASE_BRAIN_0)
-    wikiasbase_jsonld = wiki_as_base.wiki_as_base_all(wikimarkup_raw)
-    # TODO implement additional files
-    wabzip = wiki_as_base.WikiAsBase2Zip(wikiasbase_jsonld, verbose=True)
-    wabzip.output("/tmp/brain.zip")
+    # wikimarkup_raw = wiki_as_base.wiki_as_base_request(CHATBOT_WIKIASBASE_BRAIN_0)
+    # wikiasbase_jsonld = wiki_as_base.wiki_as_base_all(wikimarkup_raw)
+    # # TODO implement additional files
+    # wabzip = wiki_as_base.WikiAsBase2Zip(wikiasbase_jsonld, verbose=True)
+    # wabzip.output("/tmp/brain.zip")
+
+    wtxt = WikitextAsData().set_pages_autodetect(CHATBOT_WIKIASBASE_BRAIN_0)
+    if not wtxt.prepare().is_success():
+        raise IOError("WikitextAsData err")
+
+    wtxt.output_zip("/tmp/brain.zip")
+
     shutil.unpack_archive("/tmp/brain.zip", "/tmp/brain")
     return "/tmp/brain/"
 
 
-try:
-    _brain_base = bot_brain_init_external_files_wikiasbase()
-    RIVER_BRAIN_SOURCES.append(CHATBOT_WIKIASBASE_BRAIN_0)
-    RIVER_BRAIN_UPDATED = datetime.datetime.now().isoformat()
-except Exception:
-    _brain_base = bot_brain_init_external_files_fallback()
-    RIVER_BRAIN_SOURCES.append("!!!fallback!!!")
-    RIVER_BRAIN_UPDATED = datetime.datetime.now().isoformat()
+# Disabled wiki request fallback
+
+_brain_base = bot_brain_init_external_files_wikiasbase()
+RIVER_BRAIN_SOURCES.append(CHATBOT_WIKIASBASE_BRAIN_0)
+RIVER_BRAIN_LOCALFILES = os.listdir(_brain_base)
+RIVER_BRAIN_UPDATED = datetime.datetime.now().isoformat()
+
+# try:
+#     _brain_base = bot_brain_init_external_files_wikiasbase()
+#     RIVER_BRAIN_SOURCES.append(CHATBOT_WIKIASBASE_BRAIN_0)
+#     RIVER_BRAIN_UPDATED = datetime.datetime.now().isoformat()
+# except Exception:
+#     _brain_base = bot_brain_init_external_files_fallback()
+#     RIVER_BRAIN_SOURCES.append("!!!fallback!!!")
+#     RIVER_BRAIN_UPDATED = datetime.datetime.now().isoformat()
 
 # print(os.listdir(_brain_base))
 
@@ -155,6 +171,7 @@ def about() -> dict:
         "rivescript.__version__": version("rivescript"),
         "RIVER_BRAIN_SOURCES": RIVER_BRAIN_SOURCES,
         "RIVER_BRAIN_UPDATED": RIVER_BRAIN_UPDATED,
+        "RIVER_BRAIN_LOCALFILES": RIVER_BRAIN_LOCALFILES,
         # "CACHE_TTL": CACHE_TTL,
         # "USER_AGENT": USER_AGENT,
         # "WIKI_API": WIKI_API,
@@ -213,7 +230,8 @@ def handle(event, context):
         parse_telegram_out(message_reply, chat_id)
 
     return {
-        "statusCode": 400,
+        # "statusCode": 400,
+        "statusCode": 200,
         "headers": {"content-type": "application/json; charset=utf-8"},
         "body": {
             "input": tlg_in_msg,

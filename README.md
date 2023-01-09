@@ -150,11 +150,13 @@ curl https://osm-faas.etica.ai/wiki-as-base/User:EmericusPetro/sandbox/Chatbot-p
 curl 'http://localhost:8080/295916|296167.zip' > teste.zip
 -->
 
-### wiki-telegram-bot (draft)
+### wiki-telegram-bot (deprecated)
 
 > Deprecated. Replaced by wiki-telegram-faasbot.
 
 ### wiki-telegram-chatbot (draft)
+
+> Almost same variables as the wiki-telegram-faasbot
 
 <!--
 ## rebuild drill
