@@ -10,12 +10,17 @@
 import os
 import tempfile
 from importlib_metadata import version
-import mwparserfromhell
-import requests
 import requests_cache
 import wiki_as_base
+from wiki_as_base import WikitextAsData
 
-USER_AGENT = os.getenv("USER_AGENT", "wiki-as-base/1.0")
+WIKI_AS_BASE_LIB_VERSION = version("wiki_as_base")
+
+# @TODO implement logic from https://meta.wikimedia.org/wiki/User-Agent_policy
+USER_AGENT = os.getenv(
+    "USER_AGENT",
+    f"wiki-as-base-faasbot/1.0 (https://github.com/fititnt/openstreetmap-serverless-functions; user@example.org) wiki_as_base-py/{WIKI_AS_BASE_LIB_VERSION}",
+)
 WIKI_API = os.getenv("WIKI_API", "https://wiki.openstreetmap.org/w/api.php")
 CACHE_DRIVER = os.getenv("CACHE_DRIVER", "sqlite")
 CACHE_TTL = os.getenv("CACHE_TTL", "3600")  # 1 hour
@@ -51,7 +56,9 @@ def handle(event, context):
     #     return False
 
     # Quick help for the lost souls who don't read documentation
-    if len(search_path) < 4 or search_path in ["favicon.ico"]:
+    # We enforce at least 2 characters of search path (before was blocking
+    # queries such as "RDF")
+    if len(search_path) < 2 or search_path in ["favicon.ico"]:
         return {
             "statusCode": 404,
             "headers": {"content-type": "application/json; charset=utf-8"},
@@ -84,26 +91,22 @@ def handle(event, context):
         content_type = "application/zip"
         search_path = search_path.rstrip(".zip")
 
-    wikitext, wikiapi_meta = wiki_as_base.wiki_as_base_request(search_path)
-    data = {"error": "no data from request"}
-    _data_meta = {}
-    status_code = 400
-    if wikitext:
+    wtxt = WikitextAsData().set_pages_autodetect(search_path)
 
-        if wikiapi_meta:
-            WIKI_API = os.getenv("WIKI_API", wiki_as_base.WIKI_API)
-            _data_meta = wiki_as_base.wiki_as_base_meta_from_api(wikiapi_meta)
-            _data_meta["source"] = WIKI_API
+    if not wtxt.prepare().is_success():
+        # @TODO maybe explicitly expose this on the library?
+        status_code = 400
+        data = wtxt.errors
 
-        data = wiki_as_base.wiki_as_base_all(wikitext, meta=_data_meta)
+    else:
         status_code = 200
-        if content_type == "application/zip":
-            with tempfile.TemporaryFile(mode="w+b") as fp:
-                wabzip = wiki_as_base.WikiAsBase2Zip(data, verbose=True)
-                wabzip.output(fp)
-                fp.seek(0)
-                data = fp.read()
-                content_type = "application/zip"
+        if content_type != "application/zip":
+            data = wtxt.output_jsonld()
+        else:
+            with tempfile.TemporaryFile(mode="w+b") as file_pointer:
+                wtxt.output_zip(file_pointer)
+                file_pointer.seek(0)
+                data = file_pointer.read()
 
     return {
         "statusCode": status_code,

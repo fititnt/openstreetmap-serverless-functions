@@ -125,4 +125,4 @@ jobs:
           faas-cli publish
           --filter "${{ inputs.faascli_publish_filter }}"
           --platforms linux/amd64
-        continue-on-error: true
+        # continue-on-error: true

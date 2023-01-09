@@ -102,12 +102,13 @@ docker container stop overpass-proxy && docker container rm overpass-proxy && do
 
 > OpenFaaS test function. Not related to OpenStreetMap. Ignore for now.
 
-### wiki-as-base (draft)
+### wiki-as-base
+
 - **Environment Variables**
   - `CACHE_DRIVER`: `sqlite`
   - `CACHE_TTL`: `3600`
   - `WIKI_API`: `https://wiki.openstreetmap.org/w/api.php`
-  - `USER_AGENT`: `wiki-as-base/1.0`
+  - `USER_AGENT`: `wiki-as-base-faasbot/1.0 (https://github.com/fititnt/openstreetmap-serverless-functions; user@example.org) wiki_as_base-py/{WIKI_AS_BASE_LIB_VERSION}`
 
 Currently this FaaS is a syntax sugar for the latest released version of the python package `wiki_as_base`.
 See https://github.com/fititnt/wiki_as_base-py for internal details.
@@ -129,6 +130,9 @@ cd ~/Downloads/docker-build
 faas-cli build -f ./stack.yml --filter wiki-as-base && docker run --name wiki-as-base --publish 8080:8080 -d ghcr.io/fititnt/wiki-as-base && docker logs --follow wiki-as-base
 docker container stop wiki-as-base && docker container rm wiki-as-base && docker rmi ghcr.io/fititnt/wiki-as-base:latest
 
+## To remove cached versions of pip
+# docker system prune --all
+
 # tests
 curl http://localhost:8080/Key:maxspeed
 curl http://localhost:8080/User:EmericusPetro/sandbox/Wiki-as-base
@@ -142,6 +146,8 @@ curl http://localhost:8080/User:EmericusPetro/sandbox/Chatbot-por.zip > chatbot-
 wiki_as_base --page-title 'User:EmericusPetro/sandbox/Chatbot-por' --verbose --output-zip-file chatbot-por-cli.zip
 
 curl https://osm-faas.etica.ai/wiki-as-base/User:EmericusPetro/sandbox/Chatbot-por.zip > chatbot-por-online.zip
+
+curl 'http://localhost:8080/295916|296167.zip' > teste.zip
 -->
 
 ### wiki-telegram-bot (draft)
