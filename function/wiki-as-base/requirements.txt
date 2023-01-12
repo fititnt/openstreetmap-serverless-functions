@@ -1,2 +1,3 @@
 requests_cache
 wiki_as_base
+wikitextparser
