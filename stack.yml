@@ -31,7 +31,8 @@ functions:
     image: ghcr.io/${OWNER:-fititnt}/okmapabot:${TAG:-latest}
     environment:
       # TELEGRAM_BOT_TOKEN: # Unless testing, use from secret file in production
-      TELEGRAM_BOT_FILE_TOKEN: secret-telegram-okmapabot
+      TELEGRAM_BOT_TOKEN_FILE: secret-okmapabot-telegram-token
+      TELEGRAM_BOT_APISECRET_FILE: secret-okmapabot-telegram-apisecret
       TELEGRAM_BOT_NAME: OkMapaBot
       FAAS_BACKEND: https://osm-faas.etica.ai/function/
       FAAS_ALLOWED: ""

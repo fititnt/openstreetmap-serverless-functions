@@ -80,11 +80,13 @@ docker container stop api-rdf && docker container rm api-rdf
 ## rebuild drill
 cp -r $(pwd)/* ~/Downloads/docker-build
 cd ~/Downloads/docker-build
-export TELEGRAM_BOT_TOKEN="token for local test here"
 
-faas-cli build -f ./stack.yml --filter okmapabot && docker run --name okmapabot --publish 8080:8080 --env TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" -d ghcr.io/fititnt/okmapabot && docker logs --follow okmapabot
+# https://core.telegram.org/bots/api#setwebhook
+export TELEGRAM_BOT_TOKEN="..."
+# X-Telegram-Bot-Api-Secret-Token
+export TELEGRAM_WEBHOOK_SECRET="..."
 
-# faas-cli build -f ./stack.yml --filter okmapabot && docker run --name okmapabot --publish 8080:8080 --env TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" && docker logs --follow okmapabot
+faas-cli build -f ./stack.yml --filter okmapabot && docker run --name okmapabot --publish 8080:8080 -e TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" -e ELEGRAM_BOT_APISECRET_FILE="$TELEGRAM_BOT_APISECRET_FILE" -d ghcr.io/fititnt/okmapabot && docker logs --follow okmapabot
 
 docker container stop okmapabot && docker container rm okmapabot
 
@@ -117,7 +119,7 @@ curl http://localhost:8080/__about
 ```bash
 
 # Configure telegram webhook first time. Change <TELEGRAM_BOT_TOKEN> and ?url=
-curl https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://osm-faas.etica.ai/function/wiki-telegram-bot
+curl https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://osm-faas.etica.ai/function/wiki-telegram-bot/telegramWebhook/bot<TELEGRAM_BOT_TOKEN>
 #   > {"ok":true,"result":true,"description":"Webhook was set"}
 ```
 -->

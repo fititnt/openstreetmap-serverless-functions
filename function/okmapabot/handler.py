@@ -6,7 +6,8 @@
 
 # import shutil
 import datetime
-import shutil
+
+# import shutil
 import urllib
 import json
 import os
@@ -34,12 +35,16 @@ def get_faas_secret(secret_key: str):
     return output.strip()
 
 
-TELEGRAM_BOT_FILE_TOKEN = os.getenv(
-    "TELEGRAM_BOT_FILE_TOKEN", "secret-wiki-telegram-bot-001"
-)
+TELEGRAM_BOT_TOKEN_FILE = os.getenv("TELEGRAM_BOT_TOKEN_FILE", "")
 
 TELEGRAM_BOT_TOKEN = os.getenv(
-    "TELEGRAM_BOT_TOKEN", get_faas_secret(TELEGRAM_BOT_FILE_TOKEN)
+    "TELEGRAM_BOT_TOKEN", get_faas_secret(TELEGRAM_BOT_TOKEN_FILE)
+)
+
+# X-Telegram-Bot-Api-Secret-Token
+TELEGRAM_BOT_APISECRET_FILE = os.getenv("TELEGRAM_BOT_APISECRET_FILE", "")
+TELEGRAM_BOT_APISECRET = os.getenv(
+    "TELEGRAM_BOT_APISECRET", get_faas_secret(TELEGRAM_BOT_APISECRET_FILE)
 )
 
 TELEGRAM_BOT_NAME = os.getenv("TELEGRAM_BOT_NAME", "XptoTest123Bot")
@@ -206,8 +211,8 @@ def parse_telegram_out(message_reply: str, chat_id: int):
 def about() -> dict:
     """about quick summary of what this faas is about"""
     about = {
-        "@type": "faas/wiki-telegram-chatbot",
-        "faas_name": "wiki-as-base",
+        "@type": "faas/okmapabot",
+        "faas_name": "okmapabot",
         # "wiki_as_base.__version__": version("wiki_as_base"),
         "rivescript.__version__": version("rivescript"),
         "RIVER_BRAIN_SOURCES": RIVER_BRAIN_SOURCES,
@@ -239,6 +244,8 @@ def handle(event, context):
     message_reply = "...silence..."
     message_text = ""
     err = True
+    pass_to_riverbrain = True
+
     if event.method == "POST" and event.body and len(event.body) > 10:
         tlg_in_msg = json.loads(event.body)
         # message = {}
@@ -266,7 +273,27 @@ def handle(event, context):
 
         # chat_id = message["chat"]["id"]
 
-        message_reply = BOT.reply("user" + str(user_id), message_text)
+        if message_text.startswith("/dicionario"):
+            # Ja estamos este topico
+            message_text = message_text.ltrim("/dicionario")
+
+        if message_text.startswith("/id"):
+            message_text = message_text.ltrim("/id")
+
+        if message_text.startswith("/overpassql"):
+            message_reply = "/overpassql ainda não implementado. Volte em breve."
+            pass_to_riverbrain = False
+
+        if message_text.startswith("/sobre"):
+            message_reply = json.dumps(about())
+            pass_to_riverbrain = False
+
+        if message_text.startswith("/debug"):
+            message_reply = json.dumps(about())
+            pass_to_riverbrain = False
+
+        if pass_to_riverbrain:
+            message_reply = BOT.reply("user" + str(user_id), message_text)
 
         parse_telegram_out(message_reply, chat_id)
 
