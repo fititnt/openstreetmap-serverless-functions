@@ -14,7 +14,7 @@ from importlib_metadata import version
 import requests
 
 # import wiki_as_base
-from wiki_as_base import WikitextAsData
+# from wiki_as_base import WikitextAsData
 
 from rivescript import RiveScript
 
@@ -53,19 +53,28 @@ TELEGRAM_MESSAGE_WEB_PREVIEW = bool(os.getenv("TELEGRAM_MESSAGE_WEB_PREVIEW", "1
 FAAS_BACKEND = os.getenv("FAAS_BACKEND", "https://osm-faas.etica.ai/function/")
 
 FAAS_ALLOWED = os.getenv(
-    "FAAS_ALLOWED", "api-rdf,api-proxy,overpass-proxy,wiki-as-base,nodeinfo,cows"
-).split(",")
+    # "FAAS_ALLOWED", "api-rdf|api-proxy|overpass-proxy|wiki-as-base|nodeinfo|cows"
+    "FAAS_ALLOWED",
+    "",
+).split("|")
 
-CHATBOT_WIKIASBASE_BRAIN_0 = os.getenv(
-    # "CHATBOT_WIKIASBASE_BRAIN_0", "User:EmericusPetro/sandbox/Chatbot-por|User:EmericusPetro/sandbox/Chatbot-por/OSMCPLPChatbot"
-    "CHATBOT_WIKIASBASE_BRAIN_0", "296091|296154"
-)
+RIVE_FILES_0 = os.getenv("RIVE_FILES_0", "")
+RIVE_FILES_1 = os.getenv("RIVE_FILES_1", "")
+RIVE_FILES_2 = os.getenv("RIVE_FILES_2", "")
+RIVE_WIKIASBASE_BRAIN_1 = os.getenv("RIVE_WIKIASBASE_BRAIN_1", "")
+RIVE_WIKIASBASE_BRAIN_2 = os.getenv("RIVE_WIKIASBASE_BRAIN_2", "")
+
+RIVE_WIKIASBASE_BRAIN_0 = os.getenv("RIVE_WIKIASBASE_BRAIN_0", "")
+RIVE_WIKIASBASE_BRAIN_1 = os.getenv("RIVE_WIKIASBASE_BRAIN_1", "")
+RIVE_WIKIASBASE_BRAIN_2 = os.getenv("RIVE_WIKIASBASE_BRAIN_2", "")
 
 # @TODO implement CHATBOT_WIKIASBASE_BRAIN_1 and CHATBOT_WIKIASBASE_BRAIN_2
-CHATBOT_WIKIASBASE_BRAIN_1 = os.getenv(
-    "CHATBOT_WIKIASBASE_BRAIN_1",
-    "User:EmericusPetro/sandbox/Chatbot-por/OSMCPLPChatbot",
-)
+CHATBOT_WIKIASBASE_BRAIN_1 = os.getenv("CHATBOT_WIKIASBASE_BRAIN_1", "")
+# CHATBOT_WIKIASBASE_BRAIN_1 = os.getenv(
+#     "CHATBOT_WIKIASBASE_BRAIN_1",
+#     "User:EmericusPetro/sandbox/Chatbot-por/OSMCPLPChatbot",
+# )
+
 CHATBOT_WIKIASBASE_BRAIN_2 = os.getenv("CHATBOT_WIKIASBASE_BRAIN_2", "")
 
 RIVER_BRAIN_SOURCES = []
@@ -82,7 +91,8 @@ RIVER_BRAIN_UPDATED = -1
 def bot_brain_init_external_files_fallback() -> str:
     """bot_brain_init_external_files fetch files and return local path"""
     brain_files = {
-        "ola.rive": "https://raw.githubusercontent.com/fititnt/openstreetmap-serverless-functions/main/data/rivescript/pt/ola.rive"
+        "osm-tagging-pt.rive": "https://raw.githubusercontent.com/fititnt/openstreetmap-tags-to-rivescript/main/example/brain/osm-tagging-pt.rive",
+        "osm-tagging-reverse_pt.rive": "https://raw.githubusercontent.com/fititnt/openstreetmap-tags-to-rivescript/main/example/brain/osm-tagging-reverse_pt.rive",
     }
     if not os.path.isdir("/tmp/brain"):
         os.makedirs("/tmp/brain")
@@ -97,35 +107,65 @@ def bot_brain_init_external_files_fallback() -> str:
     return "/tmp/brain/"
 
 
-def bot_brain_init_external_files_wikiasbase() -> str:
-    """bot_brain_init_external_files_wikiasbase fetch from wikibase"""
+# def bot_brain_init_external_files_wikiasbase(wikiasbase_autodetect: str) -> str:
+#     """bot_brain_init_external_files_wikiasbase fetch from wikibase"""
 
-    # wikimarkup_raw = wiki_as_base.wiki_as_base_request(CHATBOT_WIKIASBASE_BRAIN_0)
-    # wikiasbase_jsonld = wiki_as_base.wiki_as_base_all(wikimarkup_raw)
-    # # TODO implement additional files
-    # wabzip = wiki_as_base.WikiAsBase2Zip(wikiasbase_jsonld, verbose=True)
-    # wabzip.output("/tmp/brain.zip")
+#     # wikimarkup_raw = wiki_as_base.wiki_as_base_request(RIVE_WIKIASBASE_BRAIN_0)
+#     # wikiasbase_jsonld = wiki_as_base.wiki_as_base_all(wikimarkup_raw)
+#     # # TODO implement additional files
+#     # wabzip = wiki_as_base.WikiAsBase2Zip(wikiasbase_jsonld, verbose=True)
+#     # wabzip.output("/tmp/brain.zip")
 
-    wtxt = WikitextAsData().set_pages_autodetect(CHATBOT_WIKIASBASE_BRAIN_0)
-    if not wtxt.prepare().is_success():
-        raise IOError("WikitextAsData err")
+#     wtxt = WikitextAsData().set_pages_autodetect(wikiasbase_autodetect)
+#     if not wtxt.prepare().is_success():
+#         raise IOError("WikitextAsData err")
 
-    wtxt.output_zip("/tmp/brain.zip")
+#     wtxt.output_zip("/tmp/brain.zip")
 
-    shutil.unpack_archive("/tmp/brain.zip", "/tmp/brain")
-    return "/tmp/brain/"
+#     shutil.unpack_archive("/tmp/brain.zip", "/tmp/brain")
+#     return "/tmp/brain/"
 
 
 # Disabled wiki request fallback
 
-_brain_base = bot_brain_init_external_files_wikiasbase()
-RIVER_BRAIN_SOURCES.append(CHATBOT_WIKIASBASE_BRAIN_0)
+
+# if RIVE_WIKIASBASE_BRAIN_0:
+#     try:
+#         _brain_base = bot_brain_init_external_files_wikiasbase(RIVE_WIKIASBASE_BRAIN_0)
+#     except Exception as err:
+#         print(err)
+
+# if RIVE_WIKIASBASE_BRAIN_1:
+#     try:
+#         _brain_base = bot_brain_init_external_files_wikiasbase(RIVE_WIKIASBASE_BRAIN_1)
+#     except Exception as err:
+#         print(err)
+
+# if RIVE_WIKIASBASE_BRAIN_2:
+#     try:
+#         _brain_base = bot_brain_init_external_files_wikiasbase(RIVE_WIKIASBASE_BRAIN_2)
+#     except Exception as err:
+#         print(err)
+
+# if RIVE_FILES_0:
+#     try:
+#         _brain_base = bot_brain_init_external_files_wikiasbase(RIVE_WIKIASBASE_BRAIN_1)
+#     except Exception as err:
+#         print(err)
+
+
+_brain_base = bot_brain_init_external_files_fallback()
+
+# _brain_base = bot_brain_init_external_files_wikiasbase()
+
+
 RIVER_BRAIN_LOCALFILES = os.listdir(_brain_base)
 RIVER_BRAIN_UPDATED = datetime.datetime.now().isoformat()
 
+
 # try:
 #     _brain_base = bot_brain_init_external_files_wikiasbase()
-#     RIVER_BRAIN_SOURCES.append(CHATBOT_WIKIASBASE_BRAIN_0)
+#     RIVER_BRAIN_SOURCES.append(RIVE_WIKIASBASE_BRAIN_0)
 #     RIVER_BRAIN_UPDATED = datetime.datetime.now().isoformat()
 # except Exception:
 #     _brain_base = bot_brain_init_external_files_fallback()
@@ -168,7 +208,7 @@ def about() -> dict:
     about = {
         "@type": "faas/wiki-telegram-chatbot",
         "faas_name": "wiki-as-base",
-        "wiki_as_base.__version__": version("wiki_as_base"),
+        # "wiki_as_base.__version__": version("wiki_as_base"),
         "rivescript.__version__": version("rivescript"),
         "RIVER_BRAIN_SOURCES": RIVER_BRAIN_SOURCES,
         "RIVER_BRAIN_UPDATED": RIVER_BRAIN_UPDATED,

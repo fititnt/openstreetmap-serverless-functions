@@ -1,5 +1,5 @@
 requests
 requests_cache
 rivescript
-wiki_as_base
-wikitextparser
+# wiki_as_base
+# wikitextparser

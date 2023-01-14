@@ -74,6 +74,54 @@ docker container stop api-rdf && docker container rm api-rdf
 
 > OpenFaaS test function. Not related to OpenStreetMap. Ignore for now.
 
+### okmapabot (draft)
+
+<!--
+## rebuild drill
+cp -r $(pwd)/* ~/Downloads/docker-build
+cd ~/Downloads/docker-build
+export TELEGRAM_BOT_TOKEN="token for local test here"
+
+faas-cli build -f ./stack.yml --filter okmapabot && docker run --name okmapabot --publish 8080:8080 --env TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" -d ghcr.io/fititnt/okmapabot && docker logs --follow okmapabot
+
+# faas-cli build -f ./stack.yml --filter okmapabot && docker run --name okmapabot --publish 8080:8080 --env TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" && docker logs --follow okmapabot
+
+docker container stop okmapabot && docker container rm okmapabot
+
+# test message
+curl --tlsv1.2 -v -k -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache"  -d '{
+"update_id":10000,
+"message":{
+  "date":1441645532,
+  "chat":{
+     "last_name":"Test Lastname",
+     "id":131936548,
+     "first_name":"Test",
+     "username":"Test"
+  },
+  "message_id":1365,
+  "from":{
+     "last_name":"fititnt",
+     "id":131936548,
+     "first_name":"Test",
+     "username":"Test"
+  },
+  "text":"ola bot"
+}
+}' "http://localhost:8080/"
+
+# about (show metadata)
+curl http://localhost:8080/__about
+
+
+```bash
+
+# Configure telegram webhook first time. Change <TELEGRAM_BOT_TOKEN> and ?url=
+curl https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://osm-faas.etica.ai/function/wiki-telegram-bot
+#   > {"ok":true,"result":true,"description":"Webhook was set"}
+```
+-->
+
 ### overpass-proxy (draft)
 - **Environment Variables**
   - `OVERPASS_API_DE_FACTO`: `https://overpass-api.de/api/interpreter`

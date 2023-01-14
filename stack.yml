@@ -2,7 +2,6 @@ version: 1.0
 provider:
   name: openfaas
 functions:
-
   # ## Templates
   # python3-http-osm:
   #   lang: python3-http
@@ -24,6 +23,24 @@ functions:
     lang: dockerfile
     handler: ./function/curl
     image: ghcr.io/${OWNER:-fititnt}/curl:${TAG:-latest}
+
+  okmapabot:
+    lang: python3-http
+    # lang: python3-http-osm
+    handler: ./function/okmapabot
+    image: ghcr.io/${OWNER:-fititnt}/okmapabot:${TAG:-latest}
+    environment:
+      # TELEGRAM_BOT_TOKEN: # Unless testing, use from secret file in production
+      TELEGRAM_BOT_FILE_TOKEN: secret-telegram-okmapabot
+      TELEGRAM_BOT_NAME: OkMapaBot
+      FAAS_BACKEND: https://osm-faas.etica.ai/function/
+      FAAS_ALLOWED: ""
+      RIVE_WIKIASBASE_BRAIN_0: ""
+      RIVE_WIKIASBASE_BRAIN_1: ""
+      RIVE_WIKIASBASE_BRAIN_2: ""
+      RIVE_FILES_0: "https://raw.githubusercontent.com/fititnt/openstreetmap-tags-to-rivescript/main/example/brain/osm-tagging-pt.rive|https://raw.githubusercontent.com/fititnt/openstreetmap-tags-to-rivescript/main/example/brain/osm-tagging-reverse_pt.rive"
+      RIVE_FILES_1: ""
+      RIVE_FILES_2: ""
 
   overpass-proxy:
     lang: python3-http
