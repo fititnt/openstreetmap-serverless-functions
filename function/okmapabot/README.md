@@ -44,15 +44,8 @@ curl -X POST -H "Content-Type: application/json" --data '{
 
 
 <!--
-curl -X POST -H "Content-Type: application/json" --data '{
-  "commands": [
-    {"command":"id","description":"Informações de contexto (local, interesses, ...)"},
-    {"command":"debug","description":"Informações de depuração"},
-    {"command":"dicionario","description":"Tópico dicionário OpenStreetMap"},
-    {"command":"overpassql","description":"Tópico overpass Query Language"},
-    {"command":"sobre","description":"Saiba mais"},
-  ]
-}' https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setMyCommands
+fititnt@bravo:~$ faas-cli deploy --image=ghcr.io/fititnt/okmapabot:latest --secret=secret-okmapabot-telegram-token --secret=secret-okmapabot-telegram-apisecret --env TELEGRAM_BOT_TOKEN_FILE='secret-okmapabot-telegram-token' --env TELEGRAM_BOT_APISECRET_FILE='secret-okmapabot-telegram-apisecret' --name=okmapabot
+Function okmapabot already exists, attempting rolling-update.
 -->
 
 <!--

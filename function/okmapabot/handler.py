@@ -98,6 +98,7 @@ def bot_brain_init_external_files_fallback() -> str:
     brain_files = {
         "osm-tagging-pt.rive": "https://raw.githubusercontent.com/fititnt/openstreetmap-tags-to-rivescript/main/example/brain/osm-tagging-pt.rive",
         "osm-tagging-reverse_pt.rive": "https://raw.githubusercontent.com/fititnt/openstreetmap-tags-to-rivescript/main/example/brain/osm-tagging-reverse_pt.rive",
+        "generico.rive": "https://raw.githubusercontent.com/fititnt/openstreetmap-tags-to-rivescript/main/example/brain/generico.rive",
     }
     if not os.path.isdir("/tmp/brain"):
         os.makedirs("/tmp/brain")
@@ -275,10 +276,10 @@ def handle(event, context):
 
         if message_text.startswith("/dicionario"):
             # Ja estamos este topico
-            message_text = message_text.ltrim("/dicionario")
+            message_text = message_text.lstrip("/dicionario")
 
         if message_text.startswith("/id"):
-            message_text = message_text.ltrim("/id")
+            message_text = message_text.lstrip("/id")
 
         if message_text.startswith("/overpassql"):
             message_reply = "/overpassql ainda não implementado. Volte em breve."
