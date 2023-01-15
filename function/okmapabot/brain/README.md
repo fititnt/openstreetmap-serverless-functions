@@ -6,4 +6,4 @@
 
 ## Online
 - https://www.rivescript.com/try
-- https://play.rivescript.com/
+- https://play.rivescript.com/s

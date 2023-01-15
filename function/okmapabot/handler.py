@@ -6,6 +6,7 @@
 
 # import shutil
 import datetime
+from typing import Union
 
 # import shutil
 import urllib
@@ -87,9 +88,10 @@ RIVER_BRAIN_UPDATED = -1
 
 
 _TEMP_EXEMPLOS = [
-    "/overpassql node[name='Gielgen'];out;",
     "/dictionario highway=trunk",
     "/dictionario estrada",
+    "/overpassql node[name='Gielgen'];out;",
+    "/nominatim Rio Branco, Brasil",
     "/id",
     "/sobre",
 ]
@@ -105,6 +107,7 @@ _TEMP_EXEMPLOS = [
 def bot_brain_init_external_files_fallback() -> str:
     """bot_brain_init_external_files fetch files and return local path"""
     brain_files = {
+        "begin.rive": "https://raw.githubusercontent.com/fititnt/openstreetmap-serverless-functions/main/function/okmapabot/brain/begin.rive",
         "osm-tagging-pt.rive": "https://raw.githubusercontent.com/fititnt/openstreetmap-tags-to-rivescript/main/example/brain/osm-tagging-pt.rive",
         "osm-tagging-reverse_pt.rive": "https://raw.githubusercontent.com/fititnt/openstreetmap-tags-to-rivescript/main/example/brain/osm-tagging-reverse_pt.rive",
         "generico.rive": "https://raw.githubusercontent.com/fititnt/openstreetmap-tags-to-rivescript/main/example/brain/generico.rive",
@@ -120,6 +123,18 @@ def bot_brain_init_external_files_fallback() -> str:
             # with open("/tmp/brain/" + finename, "w") as out_file:
             #     shutil.copyfileobj(response.raw, out_file)
     return "/tmp/brain/"
+
+
+def faas_nominatim(nominatim_query: str) -> str:
+    # @see https://nominatim.org/release-docs/latest/api/Search/
+    # faas_func = "overpass-proxy"
+
+    # @TODO additional implementation to q
+    NOMINATIM_API = "https://nominatim.openstreetmap.org/search?format=jsonv2&q="
+
+    # req = requests.get(NOMINATIM_API + urllib.parse.quote(" ".join(nominatim_query)))
+    req = requests.get(NOMINATIM_API + urllib.parse.quote(nominatim_query))
+    return req.text
 
 
 def faas_overpassql(overpassql_query: str) -> requests.Request:
@@ -207,28 +222,6 @@ BOT.sort_replies()
 # ____________________________________________________________________________ #
 
 
-def parse_telegram_out(message_reply: str, chat_id: int):
-
-    notification_text = urllib.parse.quote_plus(message_reply)
-
-    # raise Exception(notification_text)
-
-    extras = []
-    extra_params = ""
-    if TELEGRAM_MESSAGE_DISABLE_NOTIFICATION:
-        extras.append("disable_notification=true")
-    if TELEGRAM_MESSAGE_WEB_PREVIEW:
-        extras.append("no_webpage=true")
-    if len(extras):
-        extra_params = "&" + "&".join(extras)
-
-    resp = requests.get(
-        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={notification_text}{extra_params}"
-    )
-
-    return [resp.status_code, resp.text, notification_text]
-
-
 def about() -> dict:
     """about quick summary of what this faas is about"""
     about = {
@@ -263,9 +256,18 @@ def handle(event, context):
     tlg_out_msg = False
 
     message_reply = "...silence..."
+    file_upload_data = ""
+    file_upload_name = "untitled.txt"
     message_text = ""
     err = True
     pass_to_riverbrain = True
+    is_file_upload = None
+    is_telegram_message = True
+    resp_status_code = ""
+    resp_text = ""
+
+    resp_file_status_code = None
+    resp_file_text = None
 
     if event.method == "POST" and event.body and len(event.body) > 10:
         tlg_in_msg = json.loads(event.body)
@@ -307,6 +309,12 @@ def handle(event, context):
             message_reply = "/id ainda não implementado. Volte em breve."
             pass_to_riverbrain = False
 
+        if message_text.startswith("/nominatim"):
+            message_text = message_text.lstrip("/nominatim").strip()
+            # message_reply = "/nominatim ainda não implementado. Volte em breve."
+            message_reply = faas_response_as_markdown(faas_nominatim(message_text))
+            pass_to_riverbrain = False
+
         if message_text.startswith("/overpassql"):
             message_reply = "/overpassql ainda não implementado. Volte em breve."
             message_text.lstrip("/overpassql data=")
@@ -314,7 +322,12 @@ def handle(event, context):
             try:
                 req = faas_overpassql(message_text.lstrip("/overpassql"))
                 if req.status_code == 200:
-                    message_reply = faas_response_as_markdown(req.text)
+                    # message_reply = faas_response_as_markdown(req.text)
+                    message_reply = req.text
+                    file_upload_data = req.text
+                    file_upload_name = "untitled.txt"
+                    is_file_upload = True
+                    # is_telegram_message = False
                 else:
                     message_reply = (
                         "/overpassql algum erro nao grave aconteceu erro \n"
@@ -340,7 +353,15 @@ def handle(event, context):
             message_text = message_text.strip()
             message_reply = BOT.reply("user" + str(user_id), message_text)
 
-        parse_telegram_out(message_reply, chat_id)
+        if is_file_upload:
+            resp_file_status_code, resp_file_text = telegram_bot_send_file(
+                file_upload_data, chat_id
+            )
+
+        if is_telegram_message:
+            resp_status_code, resp_text = telegram_bot_send_message(
+                message_reply, chat_id
+            )
 
     return {
         # "statusCode": 400,
@@ -351,7 +372,81 @@ def handle(event, context):
             "output": tlg_out_msg,
             "message_in": message_text,
             "message_reply": message_reply,
+            "telegram_response_file": [resp_file_status_code, resp_file_text],
+            "telegram_response_message": [resp_status_code, resp_text]
             # 'debug': "Hello from OpenFaaS! <<" + event.path + ">> <<" + repr(context.__dict__) + '>> <<' + repr(event.__dict__) + '>>' + '<<tok ' + str(TELEGRAM_BOT_TOKEN) + 'tok >>' + '<<' + str(get_faas_secret(TELEGRAM_BOT_FILE_TOKEN)) + '>>'
             # 'debug': "Hello from OpenFaaS! <<" + event.path + ">> <<" + repr(context.__dict__) + '>> <<' + repr(event.__dict__) + '>>'
         },
     }
+
+
+def telegram_bot_send_file(file_contents: Union[str, bytes], chat_id: int):
+    """telegram_bot_send_file Send file via telegram bot
+
+    Args:
+        message_reply (str): text message
+        chat_id (int): The chat ID
+    """
+
+    # raise Exception(notification_text)
+    # notification_text = urllib.parse.quote_plus(message_reply)
+
+    if not file_contents:
+        file_contents = "empty file"
+
+    notification_text = ""
+    extras = []
+    extra_params = ""
+    if TELEGRAM_MESSAGE_DISABLE_NOTIFICATION:
+        extras.append("disable_notification=true")
+    if TELEGRAM_MESSAGE_WEB_PREVIEW:
+        extras.append("no_webpage=true")
+    if len(extras):
+        extra_params = "&" + "&".join(extras)
+
+    headers = {"content-type": "application/x-www-form-urlencoded"}
+
+    files = {"document": ("file.txt", file_contents, "text/plain")}
+
+    # print('telegram_bot_send_file...', file_contents)
+    resp = requests.post(
+        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument?chat_id={chat_id}{extra_params}",
+        # data=file_contents,
+        files=files,
+    )
+
+    # return [resp.status_code, resp.text, notification_text]
+    return [resp.status_code, resp.text]
+
+
+def telegram_bot_send_message(message_reply: str, chat_id: int):
+    """telegram_bot_send_message Send text message via telegram bot
+
+    _extended_summary_
+
+    Args:
+        message_reply (str): text message
+        chat_id (int): The chat ID
+        is_file_upload (bool, optional): _description_. Defaults to False.
+    """
+
+    # raise Exception(notification_text)
+    # notification_text = urllib.parse.quote_plus(message_reply)
+
+    notification_text = ""
+    extras = []
+    extra_params = ""
+    if TELEGRAM_MESSAGE_DISABLE_NOTIFICATION:
+        extras.append("disable_notification=true")
+    if TELEGRAM_MESSAGE_WEB_PREVIEW:
+        extras.append("no_webpage=true")
+    if len(extras):
+        extra_params = "&" + "&".join(extras)
+
+    notification_text = urllib.parse.quote_plus(message_reply)
+    resp = requests.get(
+        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={notification_text}{extra_params}"
+    )
+
+    # return [resp.status_code, resp.text, notification_text]
+    return [resp.status_code, resp.text]

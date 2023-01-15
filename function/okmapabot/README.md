@@ -122,6 +122,11 @@ curl --tlsv1.2 -v -k -X POST -H "Content-Type: application/json" -H "Cache-Contr
 }' "http://localhost:8080/telegramWebhook/"
 
 
+### Simulate raw upload with curl
+echo "data=node[name='Gielgen'];out;" > query.osm
+curl "https://faas.example.org/overpass-proxy" --data @query.osm --output output.osm
+
+curl -F document=@output.osm https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument?chat_id=131936548
 
 -->
 
