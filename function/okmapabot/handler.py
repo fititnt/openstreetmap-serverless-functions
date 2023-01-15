@@ -5,7 +5,10 @@
 # from ast import Tuple
 
 # import shutil
+from dataclasses import dataclass
 import datetime
+import mimetypes
+import re
 from typing import Union
 
 # import shutil
@@ -98,10 +101,67 @@ _TEMP_EXEMPLOS = [
 
 # ____________________________________________________________________________ #
 
-# @TODO ideally the rivestript server should initialyze only once and not
-#       in each request, see
-#       https://github.com/aichaos/rivescript/wiki/Make-a-Single-Shared-Bot-Instance
-#       This TODO is mostly to check later if we're somewhat okay
+
+def guess_extension_from_content_type(content_type: str):
+    content_type = content_type.lower()
+
+    if content_type.find(";") > -1:
+        # application/json; charset=UTF-8
+        content_type = content_type.split("/")[0].strip()
+
+    # Some from OSM are not on python mimetypes... yet
+    _private = {"application/osm3s+xml": "osm"}
+    if content_type in _private:
+        return _private[content_type]
+
+    # TODO remove this redundancy
+    if content_type.startswith("application/json"):
+        return "json"
+
+    ext = mimetypes.guess_extension(content_type, strict=0)
+    if not ext:
+        ext = "raw"
+
+    return ext
+
+
+def guess_filename_from_overpassql_query(overpassql: str):
+    result = "overpassql-result"
+    if overpassql:
+        parts = list(re.split(r"\W", overpassql))
+        parts.sort(key=len, reverse=True)
+        return parts[0]
+
+    return result
+
+
+@dataclass
+class FileResource:
+    content: Union[bytes, str]
+    content_type: str
+    # filename: str = None
+    filename: str = "untitled"
+
+    def __post_init__(self):
+        if not self.filename:
+            self.filename = "untitled"
+
+        # if not self.content_type:
+        #     self.content_type = "application/octet-stream"
+
+        if self.filename.find(".") == -1:
+            ext = guess_extension_from_content_type(self.content_type)
+
+            self.filename = self.filename + "." + ext
+
+    def set_name(self, name_without_extension: str, normalize: bool = True):
+        name_norm = re.sub(r"\W+", "_", name_without_extension)
+        if len(name_norm) > 30:
+            name_norm = name_norm[0:30]
+
+        ext = guess_extension_from_content_type(self.content_type)
+        self.filename = name_norm + "." + ext
+        return self
 
 
 def bot_brain_init_external_files_fallback() -> str:
@@ -125,7 +185,7 @@ def bot_brain_init_external_files_fallback() -> str:
     return "/tmp/brain/"
 
 
-def faas_nominatim(nominatim_query: str) -> str:
+def faas_nominatim(nominatim_query: str) -> requests.Request:
     # @see https://nominatim.org/release-docs/latest/api/Search/
     # faas_func = "overpass-proxy"
 
@@ -133,8 +193,8 @@ def faas_nominatim(nominatim_query: str) -> str:
     NOMINATIM_API = "https://nominatim.openstreetmap.org/search?format=jsonv2&q="
 
     # req = requests.get(NOMINATIM_API + urllib.parse.quote(" ".join(nominatim_query)))
-    req = requests.get(NOMINATIM_API + urllib.parse.quote(nominatim_query))
-    return req.text
+    resp = requests.get(NOMINATIM_API + urllib.parse.quote(nominatim_query))
+    return resp
 
 
 def faas_overpassql(overpassql_query: str) -> requests.Request:
@@ -266,8 +326,9 @@ def handle(event, context):
     resp_status_code = ""
     resp_text = ""
 
-    resp_file_status_code = None
+    resp_fileupload = None
     resp_file_text = None
+    file_upload_data = None
 
     if event.method == "POST" and event.body and len(event.body) > 10:
         tlg_in_msg = json.loads(event.body)
@@ -310,9 +371,28 @@ def handle(event, context):
             pass_to_riverbrain = False
 
         if message_text.startswith("/nominatim"):
-            message_text = message_text.lstrip("/nominatim").strip()
+            nominatim_query = message_text.lstrip("/nominatim").strip()
             # message_reply = "/nominatim ainda não implementado. Volte em breve."
-            message_reply = faas_response_as_markdown(faas_nominatim(message_text))
+            try:
+                _resp = faas_nominatim(nominatim_query)
+                message_reply = faas_response_as_markdown(_resp.text)
+
+                filename_hint = nominatim_query
+
+                file_upload_data = FileResource(
+                    content=_resp.text,
+                    content_type=_resp.headers["content-type"],
+                )
+
+                file_upload_data.set_name(filename_hint)
+                is_file_upload = True
+                is_telegram_message = False
+
+            except Exception as err:
+                message_reply = (
+                    "/nominatim retornout erro \n" + faas_response_as_markdown(str(err))
+                )
+
             pass_to_riverbrain = False
 
         if message_text.startswith("/overpassql"):
@@ -320,14 +400,23 @@ def handle(event, context):
             message_text.lstrip("/overpassql data=")
             message_text.lstrip("/overpassql ")
             try:
-                req = faas_overpassql(message_text.lstrip("/overpassql"))
+                overpassql_query = message_text.lstrip("/overpassql").strip()
+                req = faas_overpassql(overpassql_query)
                 if req.status_code == 200:
-                    # message_reply = faas_response_as_markdown(req.text)
-                    message_reply = req.text
-                    file_upload_data = req.text
-                    file_upload_name = "untitled.txt"
+                    # @TODO improve this part
+                    # filename_hint = "overpass-result"
+                    filename_hint = guess_filename_from_overpassql_query(
+                        overpassql_query
+                    )
+
+                    file_upload_data = FileResource(
+                        content=req.text,
+                        content_type=req.headers["content-type"],
+                    )
+                    file_upload_data.set_name(filename_hint)
+
                     is_file_upload = True
-                    # is_telegram_message = False
+                    is_telegram_message = False
                 else:
                     message_reply = (
                         "/overpassql algum erro nao grave aconteceu erro \n"
@@ -354,33 +443,30 @@ def handle(event, context):
             message_reply = BOT.reply("user" + str(user_id), message_text)
 
         if is_file_upload:
-            resp_file_status_code, resp_file_text = telegram_bot_send_file(
-                file_upload_data, chat_id
-            )
+            _resp = telegram_bot_send_file(chat_id, file_upload_data)
+            resp_fileupload, resp_file_text = _resp.status_code, _resp.text
 
         if is_telegram_message:
-            resp_status_code, resp_text = telegram_bot_send_message(
-                message_reply, chat_id
-            )
+            _resp = telegram_bot_send_message(chat_id, message_reply)
+            resp_status_code, resp_text = _resp.status_code, _resp.text
 
     return {
         # "statusCode": 400,
         "statusCode": 200,
         "headers": {"content-type": "application/json; charset=utf-8"},
         "body": {
-            "input": tlg_in_msg,
-            "output": tlg_out_msg,
-            "message_in": message_text,
-            "message_reply": message_reply,
-            "telegram_response_file": [resp_file_status_code, resp_file_text],
-            "telegram_response_message": [resp_status_code, resp_text]
-            # 'debug': "Hello from OpenFaaS! <<" + event.path + ">> <<" + repr(context.__dict__) + '>> <<' + repr(event.__dict__) + '>>' + '<<tok ' + str(TELEGRAM_BOT_TOKEN) + 'tok >>' + '<<' + str(get_faas_secret(TELEGRAM_BOT_FILE_TOKEN)) + '>>'
-            # 'debug': "Hello from OpenFaaS! <<" + event.path + ">> <<" + repr(context.__dict__) + '>> <<' + repr(event.__dict__) + '>>'
+            # "input": tlg_in_msg,
+            # "output": tlg_out_msg,
+            # "message_in": message_text,
+            # "message_reply": message_reply,
+            "telegram_response_file": [resp_fileupload, resp_file_text],
+            "file_upload_data": file_upload_data,
+            # "telegram_response_message": [resp_status_code, resp_text]
         },
     }
 
 
-def telegram_bot_send_file(file_contents: Union[str, bytes], chat_id: int):
+def telegram_bot_send_file(chat_id: int, file: FileResource) -> requests.Request:
     """telegram_bot_send_file Send file via telegram bot
 
     Args:
@@ -391,8 +477,8 @@ def telegram_bot_send_file(file_contents: Union[str, bytes], chat_id: int):
     # raise Exception(notification_text)
     # notification_text = urllib.parse.quote_plus(message_reply)
 
-    if not file_contents:
-        file_contents = "empty file"
+    # if not file_contents:
+    #     file_contents = "empty file"
 
     notification_text = ""
     extras = []
@@ -404,9 +490,10 @@ def telegram_bot_send_file(file_contents: Union[str, bytes], chat_id: int):
     if len(extras):
         extra_params = "&" + "&".join(extras)
 
-    headers = {"content-type": "application/x-www-form-urlencoded"}
+    # headers = {"content-type": "application/x-www-form-urlencoded"}
 
-    files = {"document": ("file.txt", file_contents, "text/plain")}
+    # files = {"document": ("file.txt", file_contents, "text/plain")}
+    files = {"document": (file.filename, file.content, file.content_type)}
 
     # print('telegram_bot_send_file...', file_contents)
     resp = requests.post(
@@ -416,10 +503,11 @@ def telegram_bot_send_file(file_contents: Union[str, bytes], chat_id: int):
     )
 
     # return [resp.status_code, resp.text, notification_text]
-    return [resp.status_code, resp.text]
+    # return [resp.status_code, resp.text]
+    return resp
 
 
-def telegram_bot_send_message(message_reply: str, chat_id: int):
+def telegram_bot_send_message(chat_id: int, message: str) -> requests.Request:
     """telegram_bot_send_message Send text message via telegram bot
 
     _extended_summary_
@@ -443,10 +531,14 @@ def telegram_bot_send_message(message_reply: str, chat_id: int):
     if len(extras):
         extra_params = "&" + "&".join(extras)
 
-    notification_text = urllib.parse.quote_plus(message_reply)
-    resp = requests.get(
-        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={notification_text}{extra_params}"
+    # https://limits.tginfo.me/pt-BR 4096 characters
+    if len(message) > 4096:
+        message = message[0:4000] + "\n\n\n (...cropped message)"
+    resp = requests.post(
+        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={chat_id}{extra_params}",
+        data={"text": message},
     )
 
     # return [resp.status_code, resp.text, notification_text]
-    return [resp.status_code, resp.text]
+    # return [resp.status_code, resp.text]
+    return resp
