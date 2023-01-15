@@ -113,6 +113,17 @@ def bot_brain_init_external_files_fallback() -> str:
     return "/tmp/brain/"
 
 
+def faas_overpassql(overpassql_query: str) -> requests.Request:
+    faas_func = "overpass-proxy"
+    req = requests.post(FAAS_BACKEND + faas_func, data=overpassql_query)
+    return req
+
+
+def faas_response_as_markdown(content: str, mediatype: str = None):
+    # TODO deal with mediatype
+    return "```\n" + content + "\n```"
+
+
 # def bot_brain_init_external_files_wikiasbase(wikiasbase_autodetect: str) -> str:
 #     """bot_brain_init_external_files_wikiasbase fetch from wikibase"""
 
@@ -283,6 +294,23 @@ def handle(event, context):
 
         if message_text.startswith("/overpassql"):
             message_reply = "/overpassql ainda não implementado. Volte em breve."
+            message_text.lstrip("/overpassql data=")
+            message_text.lstrip("/overpassql ")
+            try:
+                req = faas_overpassql(message_text.lstrip("/overpassql"))
+                if req.status_code == 200:
+                    message_reply = faas_response_as_markdown(req.text)
+                else:
+                    message_reply = (
+                        "/overpassql algum erro nao grave aconteceu erro \n"
+                        + faas_response_as_markdown(str(req.text))
+                    )
+            except Exception as err:
+                message_reply = (
+                    "/overpassql retornout erro \n"
+                    + faas_response_as_markdown(str(err))
+                )
+
             pass_to_riverbrain = False
 
         if message_text.startswith("/sobre"):
