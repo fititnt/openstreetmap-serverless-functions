@@ -85,6 +85,15 @@ CHATBOT_WIKIASBASE_BRAIN_2 = os.getenv("CHATBOT_WIKIASBASE_BRAIN_2", "")
 RIVER_BRAIN_SOURCES = []
 RIVER_BRAIN_UPDATED = -1
 
+
+_TEMP_EXEMPLOS = [
+    "/overpassql node[name='Gielgen'];out;",
+    "/dictionario highway=trunk",
+    "/dictionario estrada",
+    "/id",
+    "/sobre",
+]
+
 # ____________________________________________________________________________ #
 
 # @TODO ideally the rivestript server should initialyze only once and not
@@ -285,12 +294,18 @@ def handle(event, context):
 
         # chat_id = message["chat"]["id"]
 
+        if message_text.startswith("/exemplos"):
+            message_reply = "```\n" + "\n".join(_TEMP_EXEMPLOS) + "\n```"
+            pass_to_riverbrain = False
+
         if message_text.startswith("/dicionario"):
             # Ja estamos este topico
             message_text = message_text.lstrip("/dicionario")
 
         if message_text.startswith("/id"):
             message_text = message_text.lstrip("/id")
+            message_reply = "/id ainda não implementado. Volte em breve."
+            pass_to_riverbrain = False
 
         if message_text.startswith("/overpassql"):
             message_reply = "/overpassql ainda não implementado. Volte em breve."
@@ -322,6 +337,7 @@ def handle(event, context):
             pass_to_riverbrain = False
 
         if pass_to_riverbrain:
+            message_text = message_text.strip()
             message_reply = BOT.reply("user" + str(user_id), message_text)
 
         parse_telegram_out(message_reply, chat_id)

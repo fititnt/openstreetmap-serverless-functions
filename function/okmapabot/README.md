@@ -4,8 +4,6 @@
 ## Português
 
 
-
-
 ```bash
 
 # https://core.telegram.org/bots/api#setwebhook
@@ -24,17 +22,19 @@ curl -X POST -H "Content-Type: application/json" --data '{
 # Via webjook
 curl -X POST -H "Content-Type: application/json" --data '{
   "commands": [
-    {"command":"dicionario","description":"[Tópico] Dicionário OpenStreetMap"},
-    {"command":"overpassql","description":"[Tópico] Linguagem de consulta Overpass"},
+    {"command":"exemplos","description":"[Habilidade] Lista exemplos de uso"},
+    {"command":"dicionario","description":"[Habilidade] Dicionário OpenStreetMap"},
+    {"command":"overpassql","description":"[Habilidade] Linguagem de consulta Overpass"},
     {"command":"id","description":"Informações do seu contexto (local, interesses, ...)"},
     {"command":"sobre","description":"Saiba mais"},
     {"command":"debug","description":"Informações de depuração"},
   ]
 }' https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setMyCommands
 
-## Via @BotFather
-# dicionario - [Tópico] Dicionário OpenStreetMap
-# overpassql - [Tópico] Linguagem de consulta Overpass
+## Via @BotFather, Inspirado em Alexa Skills https://canaltech.com.br/casa-conectada/amazon-echo-alexa-melhores-comandos-de-voz-151347/
+# exemplos - [Habilidade] Lista exemplos de uso
+# dicionario - [Habilidade] Dicionário OpenStreetMap
+# overpassql - [Habilidade] Linguagem de consulta Overpass
 # id - Informações do seu contexto (local, interesses, ...)
 # sobre - Saiba mais
 # debug - Informações de depuração
@@ -62,6 +62,7 @@ faas-cli build -f ./stack.yml --filter okmapabot && docker run --name okmapabot 
 docker container stop okmapabot && docker container rm okmapabot
 
 ## Deploy prod
+fititnt@bravo:~$ export OPENFAAS_URL=https://osm-faas.etica.ai/
 fititnt@bravo:~$ faas-cli deploy --image=ghcr.io/fititnt/okmapabot:latest --secret=secret-okmapabot-telegram-token --secret=secret-okmapabot-telegram-apisecret --env TELEGRAM_BOT_TOKEN_FILE='secret-okmapabot-telegram-token' --env TELEGRAM_BOT_APISECRET_FILE='secret-okmapabot-telegram-apisecret' --name=okmapabot
 Function okmapabot already exists, attempting rolling-update.
 
